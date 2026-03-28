@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>每日反馈页</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <main class="page-shell">
+      <section class="hero-panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Daily Reflection</p>
+          <h1 id="daily-page-title">每日专属页</h1>
+          <p class="hero-text" id="daily-page-subtitle">
+            在这里查看当天的完整数据、写下日志，并生成一份结合主观感受与客观指标的反馈。
+          </p>
+          <div class="page-actions">
+            <a class="soft-button" href="./index.html">返回总览</a>
+          </div>
+        </div>
+        <div class="hero-stats" id="daily-hero-stats"></div>
+      </section>
+
+      <section class="detail-layout">
+        <article class="paper-panel detail-main">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">专业分析</p>
+              <h2 id="daily-analysis-tone">载入中</h2>
+            </div>
+            <div class="analysis-score" id="daily-analysis-score"></div>
+          </div>
+
+          <p class="analysis-summary" id="daily-analysis-summary"></p>
+          <div class="analysis-block">
+            <h3>关键发现</h3>
+            <div id="daily-finding-list" class="insight-list"></div>
+          </div>
+          <div class="analysis-block">
+            <h3>行动建议</h3>
+            <div id="daily-recommendation-list" class="insight-list"></div>
+          </div>
+          <div class="analysis-block">
+            <h3>需要留意</h3>
+            <div id="daily-caution-list" class="insight-list"></div>
+          </div>
+          <div class="detail-metrics" id="daily-detail-metrics"></div>
+          <div class="coverage-strip" id="daily-metric-coverage"></div>
+          <div class="metric-panel-list" id="daily-metric-panels"></div>
+        </article>
+
+        <aside class="paper-panel detail-side">
+          <p class="section-kicker">日志与反馈</p>
+          <h2>写给今天的自己</h2>
+          <p class="section-note">
+            先写下今天的主观感受、事件、状态变化，再结合按钮生成一份每日反馈。
+          </p>
+          <label class="journal-label" for="journal-input">今日日志</label>
+          <textarea id="journal-input" class="journal-input" placeholder="例如：昨晚睡得晚，但上午精神还可以。午后有点累，散步后状态好一些。"></textarea>
+          <div class="page-actions stacked">
+            <button id="save-note-button" class="solid-button" type="button">保存日志</button>
+            <button id="generate-feedback-button" class="soft-button" type="button">生成每日反馈</button>
+          </div>
+          <p class="helper-text" id="journal-status">日志尚未保存。</p>
+
+          <div class="analysis-block">
+            <h3>生成反馈</h3>
+            <div class="generated-feedback" id="generated-feedback">
+              <div class="empty-state">生成后的每日反馈会显示在这里。</div>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="./daily.js"></script>
+  </body>
+  </html>

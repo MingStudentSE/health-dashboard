@@ -1,0 +1,8 @@
+{
+  "driveFolder": "",
+  "openaiCompatible": {
+    "baseUrl": "https://api.siliconflow.cn/v1",
+    "apiKey": "",
+    "model": "Pro/deepseek-ai/DeepSeek-V3.2"
+  }
+}

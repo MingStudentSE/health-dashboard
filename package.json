@@ -1,0 +1,15 @@
+{
+  "name": "health-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:drive": "node src/archiveDriveJsonToSqlite.mjs",
+    "sync": "npm run sync:drive",
+    "import:sqlite": "node src/importHealthToSqlite.mjs",
+    "build:dashboard": "node src/buildDashboardData.mjs",
+    "build:standalone": "npm run build:dashboard && node src/buildStandaloneDashboard.mjs",
+    "start": "node src/server.mjs",
+    "dev": "node src/server.mjs"
+  }
+}

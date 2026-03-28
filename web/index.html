@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>暮色养生录</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <main class="page-shell">
+      <section class="hero-panel">
+        <div class="hero-copy">
+          <p class="eyebrow">暮色养生录</p>
+          <h1>最近健康状态总览</h1>
+          <p class="hero-text">
+            这里优先回答一个问题：你最近这段时间的健康状态怎么样。首页会先展示最近状态、趋势判断和报告日历，单日详情与反馈统一放到每日页面中。
+          </p>
+        </div>
+        <div class="hero-stats" id="hero-stats"></div>
+      </section>
+
+      <section class="detail-layout">
+        <article class="paper-panel detail-main">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">近期判断</p>
+              <h2 id="recent-analysis-title">最近状态分析</h2>
+            </div>
+            <div class="range-pill" id="recent-range-label"></div>
+          </div>
+          <p class="analysis-summary" id="recent-analysis-summary"></p>
+          <div class="analysis-block">
+            <h3>分析</h3>
+            <div id="recent-finding-list" class="insight-list"></div>
+          </div>
+          <div class="analysis-block">
+            <h3>建议</h3>
+            <div id="recent-recommendation-list" class="insight-list"></div>
+          </div>
+          <div class="analysis-block">
+            <h3>警告</h3>
+            <div id="recent-caution-list" class="insight-list"></div>
+          </div>
+        </article>
+
+        <aside class="paper-panel detail-side">
+          <p class="section-kicker">报告日历</p>
+          <h2>哪些日期有报告</h2>
+          <p class="section-note">按月查看已生成报告的日期，点击任意一天进入专属页面。</p>
+          <div id="calendar-list" class="calendar-list"></div>
+        </aside>
+      </section>
+
+      <dialog id="calendar-preview" class="preview-dialog">
+        <form method="dialog" class="preview-dialog-card">
+          <div class="preview-head">
+            <div>
+              <p class="section-kicker">报告摘要</p>
+              <h2 id="preview-date">某一天</h2>
+            </div>
+            <button class="soft-button" value="cancel" type="submit">关闭</button>
+          </div>
+          <p class="analysis-summary" id="preview-summary"></p>
+          <div class="detail-metrics" id="preview-metrics"></div>
+          <div class="analysis-block">
+            <h3>简短判断</h3>
+            <div id="preview-findings" class="insight-list"></div>
+          </div>
+          <div class="page-actions">
+            <a id="preview-open-link" class="solid-button" href="./daily.html">进入当日页面</a>
+          </div>
+        </form>
+      </dialog>
+
+      <section class="paper-panel">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">日次概览</p>
+            <h2>全量指标趋势</h2>
+          </div>
+          <p class="section-note">趋势保留在首页，因为它最适合用来判断你最近一段时间是在变好、变差还是波动。</p>
+        </div>
+        <div class="chart-grid" id="trend-grid"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+  </html>

@@ -1,0 +1,21 @@
+.DS_Store
+node_modules/
+
+# Local secrets
+health.config.json
+.env
+.env.*
+*.log
+
+# Archived personal health exports
+json/*
+!json/.gitkeep
+
+# Runtime data and local notes
+data/*
+!data/.gitkeep
+
+# Generated dashboards containing personal health data
+web/data/*
+!web/data/.gitkeep
+web/health-dashboard-standalone.html
