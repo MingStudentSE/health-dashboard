@@ -8,6 +8,8 @@
 - 多日健康汇总数据
 - 带轻量分析的静态网页看板
 - 带日志与每日反馈的本地日更页面
+- 可手动维护的身体数据页
+- 可持续记录的健身训练页
 
 项目适合这样的使用场景：
 
@@ -36,6 +38,9 @@
 - 只把新增或变更过的文件导入 SQLite
 - 基于本地归档数据生成静态网页
 - 每次同步追加一条轻量日志
+- 提供身体数据页，记录体重、体脂、骨骼肌、三围、评分和备注
+- 提供健身记录页，记录动作、目标部位、组数、次数、重量、教练评价和个人反馈
+- 身体数据和健身记录统一写入 `data/health.sqlite`
 
 ## 输出产物
 
@@ -50,6 +55,8 @@
 - `data/daily-notes/<date>.json`
 - `/api/days/:date/note`
 - `/api/days/:date/feedback`
+- `/api/body-records`
+- `/api/workout-records`
 
 其中 `web/health-dashboard-standalone.html` 可以直接双击打开，不依赖本地服务。
 
@@ -74,13 +81,23 @@ health/
 │  └─ public_drive_json_reader.py
 ├─ src/
 │  ├─ archiveDriveJsonToSqlite.mjs
+│  ├─ bodyMetrics.mjs
 │  ├─ importHealthToSqlite.mjs
 │  ├─ buildDashboardData.mjs
-│  └─ buildStandaloneDashboard.mjs
+│  ├─ buildStandaloneDashboard.mjs
+│  ├─ server.mjs
+│  ├─ sqlite.mjs
+│  └─ workoutRecords.mjs
 ├─ web/
+│  ├─ body.html
+│  ├─ body.js
+│  ├─ daily.html
+│  ├─ daily.js
 │  ├─ index.html
 │  ├─ styles.css
 │  ├─ app.js
+│  ├─ workout.html
+│  ├─ workout.js
 │  └─ data/health-dashboard.json
 ├─ health.config.example.json
 └─ package.json
@@ -145,13 +162,19 @@ npm run start
 
 或者直接双击仓库根目录下的 `run.command`。
 
-如果你希望先自动检查 Google Drive 有没有新增导出，再决定是否同步并启动应用，可以双击 `sync-and-run.command`。
+现在的 `run.command` 和 `sync-and-run.command` 都会优先读取 `health.config.json` 里的 `driveFolder`，自动同步最新一份 Google Drive 导出，再启动本地网页。
 
 然后访问：
 
 ```text
 http://127.0.0.1:3030
 ```
+
+本地应用里目前包含 3 个主要页面：
+
+- `/`：健康总览首页
+- `/body.html`：身体数据记录页
+- `/workout.html`：健身记录页
 
 ## 常用命令
 
@@ -197,13 +220,13 @@ npm run build:standalone
 npm run start
 ```
 
-或运行：
+一键同步最新云盘数据并启动本地应用：
 
 ```bash
 ./run.command
 ```
 
-如果要先检查并同步新增数据，再启动本地应用：
+兼容旧入口：
 
 ```bash
 ./sync-and-run.command
@@ -225,6 +248,10 @@ npm run start
 - `metric_records`
 - `daily_metric_totals`
 - `daily_sleep_summary`
+- `body_measurements`
+- `workout_sessions`
+- `workout_exercises`
+- `workout_sets`
 
 查询示例：
 
@@ -268,6 +295,8 @@ ORDER BY day;
 - 趋势图与趋势判断
 - 报告日历
 - 某一天的摘要弹窗入口
+- 身体数据摘要
+- 最近训练摘要
 
 ## 每日反馈页
 
@@ -283,6 +312,55 @@ ORDER BY day;
 ```text
 data/daily-notes/YYYY-MM-DD.json
 ```
+
+## 身体数据页
+
+本地应用模式下，`/body.html` 提供一套独立的身体数据记录页，用来维护你自己的阶段性体测记录。
+
+当前支持记录：
+
+- 日期
+- 体重
+- 体脂率
+- 骨骼肌
+- 胸围
+- 腰围
+- 臀围
+- 身体年龄
+- 评分
+- 备注
+
+页面会自动生成：
+
+- 最新状态摘要
+- 与上一条记录相比的变化趋势
+- 单次记录的简单分析与提醒
+- 历史记录列表
+
+这些数据现在统一存放在 SQLite 的 `body_measurements` 表里。
+
+## 健身记录页
+
+本地应用模式下，`/workout.html` 提供一套独立的健身记录页，用来按“单次训练”记录训练内容。
+
+每次训练支持记录：
+
+- 训练日期
+- 动作名称
+- 动作对应的目标部位
+- 每个动作的多组训练数据
+- 每组的次数
+- 每组的重量
+- 教练评价
+- 个人反馈
+
+页面会自动整理：
+
+- 最近训练摘要
+- 每次训练的动作数量、总组数和训练量
+- 历史训练列表
+
+这些数据现在统一存放在 SQLite 的 `workout_sessions`、`workout_exercises`、`workout_sets` 表里。
 
 ## OpenAI 兼容接口
 
@@ -308,6 +386,7 @@ data/daily-notes/YYYY-MM-DD.json
 - 本项目面向个人数据归档与回顾，不是医疗诊断工具
 - 网页中的分析属于启发式描述，不构成临床建议
 - 若要使用内置 Google Drive 读取脚本，目标文件夹必须是公开可读的
+- 身体数据页和健身记录页属于手动录入模块，不会自动从 Apple Health 推断三围或力量训练明细
 
 ## GitHub 发布默认约定
 
@@ -317,5 +396,6 @@ data/daily-notes/YYYY-MM-DD.json
 - `data/*.sqlite` 已忽略
 - `data/sync-log.jsonl` 已忽略
 - `data/daily-notes/` 已忽略
+- `data/body-records.json` 和 `data/workout-records.json` 若存在，仅作为旧版本迁移备份，不再是主数据源
 
 你可以自行决定是否保留 `json/` 中的样例数据用于演示。

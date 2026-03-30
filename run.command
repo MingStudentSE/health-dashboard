@@ -28,8 +28,16 @@ if ! command -v sqlite3 >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "Building latest dashboard assets..."
-npm run build:standalone
+DRIVE_FOLDER="$(node --input-type=module -e "import fs from 'node:fs'; try { const raw = fs.readFileSync('health.config.json', 'utf8'); const parsed = JSON.parse(raw); const value = typeof parsed.driveFolder === 'string' ? parsed.driveFolder.trim() : ''; process.stdout.write(value); } catch { process.stdout.write(''); }")"
+
+if [ -n "$DRIVE_FOLDER" ]; then
+  echo "Syncing latest Google Drive export..."
+  npm run sync:drive -- --latest-only
+else
+  echo "No driveFolder configured in health.config.json. Building local dashboard only."
+  echo "Building latest dashboard assets..."
+  npm run build:standalone
+fi
 
 echo ""
 echo "Opening browser at ${URL}"

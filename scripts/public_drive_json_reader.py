@@ -52,8 +52,8 @@ def fetch_text(url: str, timeout: int = 30) -> str:
     return fetch_with_retry(url, timeout=timeout).decode("utf-8", "ignore")
 
 
-def fetch_bytes(url: str, timeout: int = 30) -> bytes:
-    return fetch_with_retry(url, timeout=timeout)
+def fetch_bytes(url: str, timeout: int = 30, retries: int = 2) -> bytes:
+    return fetch_with_retry(url, timeout=timeout, retries=retries)
 
 
 def list_public_folder_files(folder_value: str) -> list[DriveFile]:

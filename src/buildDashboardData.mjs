@@ -1,11 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { readBodyMetricsDb } from "./bodyMetrics.mjs";
+import { readWorkoutRecordsDb } from "./workoutRecords.mjs";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const jsonDir = path.join(projectRoot, "json");
 const outputDir = path.join(projectRoot, "web", "data");
 const outputFile = path.join(outputDir, "health-dashboard.json");
+const dbPath = path.join(projectRoot, "data", "health.sqlite");
 
 const metricLabels = {
   step_count: "步数",
@@ -606,6 +609,8 @@ async function main() {
   }));
 
   const recentOverview = createRecentOverview(dayRecords);
+  const bodyMetrics = await readBodyMetricsDb(dbPath);
+  const workoutRecords = await readWorkoutRecordsDb(dbPath);
 
   const payload = {
     generatedAt: new Date().toISOString(),
@@ -614,6 +619,8 @@ async function main() {
     metricCatalog,
     metricTrends,
     recentOverview,
+    bodyMetrics,
+    workoutRecords,
     totals,
     days: dayRecords.map((day) => ({
       ...day,

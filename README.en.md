@@ -8,6 +8,8 @@ A self-contained local pipeline for turning exported health JSON files into:
 - a multi-day health summary dataset
 - a static HTML dashboard with lightweight analysis
 - a daily reflection page with journaling and feedback
+- a dedicated body metrics page
+- a dedicated workout log page
 
 The project is designed for workflows like:
 
@@ -36,6 +38,9 @@ This repository assumes that the setup above is already complete and that you ha
 - Imports only new or changed files into SQLite
 - Builds a static dashboard from the archived data
 - Writes a small sync log for each run
+- Provides a body metrics page for weight, body fat, skeletal muscle, circumference, score, and notes
+- Provides a workout page for exercises, target areas, sets, reps, weights, coach comments, and personal feedback
+- Stores body metrics and workout logs in `data/health.sqlite`
 
 ## Output
 
@@ -50,6 +55,8 @@ When running in app mode, the project also uses:
 - `data/daily-notes/<date>.json`
 - `/api/days/:date/note`
 - `/api/days/:date/feedback`
+- `/api/body-records`
+- `/api/workout-records`
 
 The standalone HTML file can be opened directly in a browser without a local server.
 
@@ -74,13 +81,23 @@ health/
 │  └─ public_drive_json_reader.py
 ├─ src/
 │  ├─ archiveDriveJsonToSqlite.mjs
+│  ├─ bodyMetrics.mjs
 │  ├─ importHealthToSqlite.mjs
 │  ├─ buildDashboardData.mjs
-│  └─ buildStandaloneDashboard.mjs
+│  ├─ buildStandaloneDashboard.mjs
+│  ├─ server.mjs
+│  ├─ sqlite.mjs
+│  └─ workoutRecords.mjs
 ├─ web/
+│  ├─ body.html
+│  ├─ body.js
+│  ├─ daily.html
+│  ├─ daily.js
 │  ├─ index.html
 │  ├─ styles.css
 │  ├─ app.js
+│  ├─ workout.html
+│  ├─ workout.js
 │  └─ data/health-dashboard.json
 ├─ health.config.example.json
 └─ package.json
@@ -145,13 +162,19 @@ npm run start
 
 Or simply double-click `run.command` in the repository root.
 
-If you want the app to check Google Drive first, sync only when new exports exist, and then launch, double-click `sync-and-run.command`.
+Both `run.command` and `sync-and-run.command` now read `driveFolder` from `health.config.json`, sync the latest Google Drive export, and then launch the local app.
 
 Then open:
 
 ```text
 http://127.0.0.1:3030
 ```
+
+The local app currently exposes three main pages:
+
+- `/` for the main health dashboard
+- `/body.html` for manual body metrics tracking
+- `/workout.html` for workout logging
 
 ## Commands
 
@@ -197,13 +220,13 @@ Start the local app:
 npm run start
 ```
 
-Or run:
+Sync the latest Google Drive export and start the app:
 
 ```bash
 ./run.command
 ```
 
-To check for new exports, sync incrementally, and then start the app:
+Legacy entry point with the same behavior:
 
 ```bash
 ./sync-and-run.command
@@ -225,6 +248,10 @@ Main tables and views:
 - `metric_records`
 - `daily_metric_totals`
 - `daily_sleep_summary`
+- `body_measurements`
+- `workout_sessions`
+- `workout_exercises`
+- `workout_sets`
 
 Example queries:
 
@@ -268,6 +295,8 @@ The generated dashboard is a static page built from local data. It currently inc
 - trend charts and trend interpretation
 - a report calendar
 - summary preview before opening a specific day
+- a body metrics summary
+- a recent workout summary
 
 ## Daily Reflection Pages
 
@@ -283,6 +312,55 @@ Journal files are stored locally at:
 ```text
 data/daily-notes/YYYY-MM-DD.json
 ```
+
+## Body Metrics Page
+
+In local app mode, `/body.html` provides a dedicated page for manual body measurement tracking.
+
+Supported fields:
+
+- date
+- weight
+- body fat rate
+- skeletal muscle
+- chest
+- waist
+- hip
+- body age
+- score
+- note
+
+The page also generates:
+
+- a latest-status summary
+- changes versus the previous record
+- lightweight record-by-record analysis
+- a history list
+
+These records are stored in the `body_measurements` table in SQLite.
+
+## Workout Page
+
+In local app mode, `/workout.html` provides a dedicated page for logging each workout session.
+
+Each session supports:
+
+- workout date
+- exercise name
+- target areas for the exercise
+- multiple sets per exercise
+- reps per set
+- weight per set
+- coach evaluation
+- personal feedback
+
+The page also shows:
+
+- recent workout summaries
+- exercise count, total sets, and estimated training volume per session
+- workout history
+
+These records are stored in the `workout_sessions`, `workout_exercises`, and `workout_sets` tables in SQLite.
 
 ## OpenAI-Compatible API
 
@@ -308,6 +386,7 @@ If no model config is provided, the project falls back to a local heuristic feed
 - This project is intended for personal data workflows, not medical diagnosis
 - The dashboard analysis is heuristic and descriptive, not clinical advice
 - The Google Drive folder must be publicly readable for the bundled reader to work
+- The body metrics and workout pages are manual-entry modules, not automatic Apple Health imports
 
 ## GitHub-Friendly Defaults
 
@@ -317,5 +396,6 @@ The repository is set up so that personal runtime files stay local:
 - `data/*.sqlite` is ignored
 - `data/sync-log.jsonl` is ignored
 - `data/daily-notes/` is ignored
+- `data/body-records.json` and `data/workout-records.json`, if present, are legacy migration backups rather than active data sources
 
 You can choose whether to keep sample JSON files in `json/` for demos, or remove them before publishing.

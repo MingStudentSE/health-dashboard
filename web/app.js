@@ -49,6 +49,57 @@ function createHeroStats(payload) {
     .join("");
 }
 
+function createBodySummary(payload) {
+  const bodyMetrics = payload.bodyMetrics || {};
+  const hero = Array.isArray(bodyMetrics.summary?.hero) ? bodyMetrics.summary.hero : [];
+  const highlights = bodyMetrics.summary?.highlights || [];
+  const recommendations = bodyMetrics.summary?.recommendations || [];
+
+  document.querySelector("#body-summary-grid").innerHTML = hero.length
+    ? hero
+        .map((item) => {
+          const formattedValue = typeof item.value === "number" ? formatMetricValue(item.value, item.unit) : item.value;
+          const deltaText = item.delta && item.delta !== "持平" ? `${item.delta}${item.unit === "/100" ? "" : item.unit || ""}` : item.delta;
+          return `
+            <article class="metric-tile body-metric-tile">
+              <div class="metric-label">${item.label}</div>
+              <div class="metric-value">${formattedValue}</div>
+              <div class="metric-delta">${deltaText || "首次记录"}</div>
+            </article>
+          `;
+        })
+        .join("")
+    : `<div class="empty-state compact">还没有身体数据记录，先去身体数据页添加第一条。</div>`;
+
+  renderAnalysisList("#body-summary-highlights", highlights.length ? highlights : ["还没有形成身体数据判断。"]);
+  renderAnalysisList(
+    "#body-summary-recommendations",
+    recommendations.length ? recommendations : ["建议先按周持续记录，趋势会比单次数值更有参考意义。"],
+  );
+}
+
+function createWorkoutSummary(payload) {
+  const workoutRecords = payload.workoutRecords || {};
+  const hero = Array.isArray(workoutRecords.summary?.hero) ? workoutRecords.summary.hero : [];
+  const highlights = workoutRecords.summary?.highlights || [];
+
+  document.querySelector("#workout-summary-grid").innerHTML = hero.length
+    ? hero
+        .map((item) => {
+          const formattedValue = typeof item.value === "number" ? formatMetricValue(item.value, item.unit) : item.value;
+          return `
+            <article class="metric-tile body-metric-tile">
+              <div class="metric-label">${item.label}</div>
+              <div class="metric-value">${formattedValue}</div>
+            </article>
+          `;
+        })
+        .join("")
+    : `<div class="empty-state compact">还没有训练记录，先去健身记录页添加第一堂训练。</div>`;
+
+  renderAnalysisList("#workout-summary-highlights", highlights.length ? highlights : ["最近还没有可展示的训练摘要。"]);
+}
+
 function createRecentAnalysis(payload) {
   const recent = payload.recentOverview?.analysis;
   document.querySelector("#recent-analysis-title").textContent =
@@ -278,6 +329,8 @@ async function main() {
   const days = payload.days ?? [];
 
   createHeroStats(payload);
+  createBodySummary(payload);
+  createWorkoutSummary(payload);
   createRecentAnalysis(payload);
   createTrendCharts(payload);
   createCalendar(days);

@@ -130,7 +130,10 @@ h3 {
 .metric-tile,
 .day-card,
 .insight-item,
-.chart-card {
+.chart-card,
+.body-summary-panel,
+.body-form-panel,
+.body-history-panel {
   border-radius: 22px;
   border: 1px solid var(--line);
   background: var(--paper-strong);
@@ -200,6 +203,46 @@ h3 {
 
 .paper-panel {
   padding: 28px;
+}
+
+.body-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.body-summary-columns,
+.body-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.body-summary-panel,
+.body-form-panel,
+.body-history-panel {
+  padding: 18px;
+}
+
+.body-metric-tile .metric-value {
+  font-size: 1.45rem;
+}
+
+.metric-delta,
+.field-hint {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.compact-list {
+  margin-top: 12px;
+}
+
+.compact-list .insight-item {
+  padding: 12px 14px;
 }
 
 .section-head {
@@ -604,6 +647,162 @@ h3 {
   padding: 14px 16px;
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.form-field {
+  display: grid;
+  gap: 8px;
+}
+
+.form-field.span-2 {
+  grid-column: span 2;
+}
+
+.form-field label {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(255, 250, 242, 0.92);
+  color: var(--ink);
+  font: inherit;
+}
+
+.form-field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.section-subnote {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.body-history-list {
+  display: grid;
+  gap: 14px;
+}
+
+.body-record-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 242, 0.9);
+}
+
+.body-record-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.body-record-date {
+  font-family: "Shippori Mincho", serif;
+  font-size: 1.2rem;
+}
+
+.body-record-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ghost-button,
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(117, 87, 63, 0.18);
+  background: rgba(255, 250, 242, 0.92);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.danger-button {
+  color: var(--accent);
+}
+
+.body-record-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.body-record-note {
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.exercise-list,
+.exercise-history-list {
+  display: grid;
+  gap: 14px;
+}
+
+.exercise-card,
+.exercise-history-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 242, 0.9);
+}
+
+.exercise-head,
+.workout-section-head {
+  align-items: center;
+}
+
+.exercise-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.set-list {
+  display: grid;
+  gap: 10px;
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.exercise-history-card {
+  display: grid;
+  gap: 8px;
+}
+
+.body-record-analysis {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.subtle-text {
+  color: var(--muted);
+}
+
 .chart-caption {
   display: flex;
   justify-content: space-between;
@@ -615,6 +814,8 @@ h3 {
 @media (max-width: 980px) {
   .hero-panel,
   .detail-layout,
+  .body-layout,
+  .body-summary-columns,
   .chart-grid,
   .detail-charts,
   .day-card-grid {
@@ -644,7 +845,13 @@ h3 {
   }
 
   .mini-grid,
-  .detail-metrics {
+  .detail-metrics,
+  .form-grid,
+  .set-row {
     grid-template-columns: 1fr;
+  }
+
+  .form-field.span-2 {
+    grid-column: auto;
   }
 }

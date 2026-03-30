@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>健身记录页</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <main class="page-shell">
+      <section class="hero-panel">
+        <div class="hero-copy">
+          <p class="eyebrow">健身记录页</p>
+          <h1>记录每一次训练内容</h1>
+          <p class="hero-text">
+            每堂训练都可以拆成多个动作，每个动作再记录每组次数和重量，并附上教练评价和你自己的体感反馈。
+          </p>
+          <div class="page-actions">
+            <a class="soft-button" href="./index.html">返回首页</a>
+          </div>
+        </div>
+        <div class="hero-stats" id="workout-hero-stats"></div>
+      </section>
+
+      <section class="body-layout">
+        <article class="body-form-panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">录入</p>
+              <h2>新增一堂训练</h2>
+            </div>
+          </div>
+          <form id="workout-record-form" class="form-grid">
+            <div class="form-field span-2">
+              <label for="workout-date">训练日期</label>
+              <input id="workout-date" name="date" type="date" required />
+            </div>
+            <div class="form-field span-2">
+              <label for="coach-evaluation">教练评价</label>
+              <textarea id="coach-evaluation" name="coachEvaluation" placeholder="例如：深蹲深度够了，但上背还可以再锁紧。"></textarea>
+            </div>
+            <div class="form-field span-2">
+              <label for="personal-feedback">个人反馈</label>
+              <textarea id="personal-feedback" name="personalFeedback" placeholder="例如：腿后侧发力明显，最后两组心肺压力大。"></textarea>
+            </div>
+          </form>
+
+          <div class="section-head workout-section-head">
+            <div>
+              <p class="section-kicker">动作</p>
+              <h3>本次训练动作</h3>
+            </div>
+            <button class="soft-button" id="add-exercise-button" type="button">添加动作</button>
+          </div>
+          <div id="exercise-list" class="exercise-list"></div>
+
+          <div class="page-actions">
+            <button class="solid-button" id="save-workout-button" type="submit" form="workout-record-form">保存训练记录</button>
+            <button class="soft-button" id="reset-workout-button" type="button">清空表单</button>
+          </div>
+          <p class="field-hint" id="workout-form-status">本页需要本地服务模式才能保存记录。</p>
+        </article>
+
+        <article class="body-history-panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">摘要</p>
+              <h2>最近训练摘要</h2>
+            </div>
+          </div>
+          <div class="insight-list" id="workout-summary-list"></div>
+        </article>
+      </section>
+
+      <section class="paper-panel">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">历史</p>
+            <h2>过往训练记录</h2>
+          </div>
+        </div>
+        <div class="body-history-list" id="workout-history-list"></div>
+      </section>
+    </main>
+
+    <template id="exercise-template">
+      <article class="exercise-card">
+        <div class="exercise-head">
+          <h3>动作</h3>
+          <button class="danger-button" type="button" data-remove-exercise>删除动作</button>
+        </div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>动作名称</label>
+            <input data-exercise-name type="text" placeholder="例如：杠铃深蹲" />
+          </div>
+          <div class="form-field">
+            <label>目标部位</label>
+            <input data-exercise-targets type="text" placeholder="例如：股四头、臀、大腿后侧" />
+          </div>
+        </div>
+        <div class="section-head workout-section-head">
+          <div>
+            <p class="section-kicker">组次</p>
+            <h3>每组训练数据</h3>
+          </div>
+          <button class="soft-button" type="button" data-add-set>添加一组</button>
+        </div>
+        <div class="set-list"></div>
+      </article>
+    </template>
+
+    <template id="set-template">
+      <div class="set-row">
+        <div class="form-field">
+          <label>次数</label>
+          <input data-set-reps type="number" step="1" placeholder="次" />
+        </div>
+        <div class="form-field">
+          <label>重量</label>
+          <input data-set-weight type="number" step="0.5" placeholder="kg" />
+        </div>
+        <button class="ghost-button" type="button" data-remove-set>删除</button>
+      </div>
+    </template>
+
+    <script type="module" src="./workout.js"></script>
+  </body>
+</html>

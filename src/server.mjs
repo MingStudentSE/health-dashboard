@@ -2,12 +2,15 @@ import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { deleteBodyMetricsDb, readBodyMetricsDb, upsertBodyMetricsDb } from "./bodyMetrics.mjs";
+import { deleteWorkoutRecordDb, insertWorkoutRecordDb, readWorkoutRecordsDb, updateWorkoutRecordDb } from "./workoutRecords.mjs";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const webRoot = path.join(projectRoot, "web");
 const dataFile = path.join(webRoot, "data", "health-dashboard.json");
 const configPath = path.join(projectRoot, "health.config.json");
 const notesDir = path.join(projectRoot, "data", "daily-notes");
+const dbPath = path.join(projectRoot, "data", "health.sqlite");
 
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
@@ -36,6 +39,10 @@ async function readJson(filePath, fallback = null) {
 
 async function ensureNotesDir() {
   await fs.mkdir(notesDir, { recursive: true });
+}
+
+async function ensureDataDir() {
+  await fs.mkdir(path.dirname(dbPath), { recursive: true });
 }
 
 async function listNoteMeta() {
@@ -196,7 +203,71 @@ async function handleApi(request, response, url) {
   if (request.method === "GET" && url.pathname === "/api/dashboard") {
     const payload = await readJson(dataFile, {});
     payload.notesMeta = await listNoteMeta();
+    payload.bodyMetrics = await readBodyMetricsDb(dbPath);
+    payload.workoutRecords = await readWorkoutRecordsDb(dbPath);
     return sendJson(response, 200, payload);
+  }
+
+  if (url.pathname === "/api/body-records") {
+    if (request.method === "GET") {
+      const payload = await readBodyMetricsDb(dbPath);
+      return sendJson(response, 200, payload);
+    }
+  }
+
+  if (url.pathname === "/api/workout-records") {
+    if (request.method === "GET") {
+      const payload = await readWorkoutRecordsDb(dbPath);
+      return sendJson(response, 200, payload);
+    }
+
+    if (request.method === "POST") {
+      const body = await readBody(request);
+      await ensureDataDir();
+      const saved = await insertWorkoutRecordDb(dbPath, body);
+      return sendJson(response, 200, saved);
+    }
+  }
+
+  const bodyRecordMatch = url.pathname.match(/^\/api\/body-records\/(\d{4}-\d{2}-\d{2})$/);
+  if (bodyRecordMatch) {
+    const date = safeDateKey(bodyRecordMatch[1]);
+    if (!date) return sendJson(response, 400, { error: "Invalid date." });
+
+    if (request.method === "PUT") {
+      const body = await readBody(request);
+      await ensureDataDir();
+      const saved = await upsertBodyMetricsDb(dbPath, { ...body, date });
+      return sendJson(response, 200, saved);
+    }
+
+    if (request.method === "DELETE") {
+      await ensureDataDir();
+      const saved = await deleteBodyMetricsDb(dbPath, date);
+      return sendJson(response, 200, saved);
+    }
+  }
+
+  const workoutRecordMatch = url.pathname.match(/^\/api\/workout-records\/(.+)$/);
+  if (workoutRecordMatch) {
+    const id = decodeURIComponent(workoutRecordMatch[1]);
+
+    if (request.method === "PUT") {
+      const body = await readBody(request);
+      await ensureDataDir();
+      try {
+        const saved = await updateWorkoutRecordDb(dbPath, id, body);
+        return sendJson(response, 200, saved);
+      } catch (error) {
+        return sendJson(response, 404, { error: error.message });
+      }
+    }
+
+    if (request.method === "DELETE") {
+      await ensureDataDir();
+      const saved = await deleteWorkoutRecordDb(dbPath, id);
+      return sendJson(response, 200, saved);
+    }
   }
 
   const noteMatch = url.pathname.match(/^\/api\/days\/(\d{4}-\d{2}-\d{2})\/note$/);
