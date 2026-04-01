@@ -38,6 +38,14 @@ function parseTimestamp(value) {
   return new Date(String(value).replace(" +0800", "+08:00"));
 }
 
+function hoursBetween(startValue, endValue) {
+  const start = parseTimestamp(startValue);
+  const end = parseTimestamp(endValue);
+  if (!start || !end || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+  const deltaHours = (end.getTime() - start.getTime()) / 36e5;
+  return Number.isFinite(deltaHours) && deltaHours > 0 ? round(deltaHours, 2) : null;
+}
+
 function round(value, digits = 2) {
   if (!Number.isFinite(value)) return 0;
   return Number(value.toFixed(digits));
@@ -93,6 +101,27 @@ function groupByHour(data = [], valueGetter, reducer = "sum") {
 
 function createStat(label, value, unit = "") {
   return { label, value, unit };
+}
+
+function resolveSleepDuration(metric) {
+  const data = metric.data || [];
+  const first = data[0] || {};
+  const exportedSleep = Number(first.asleep ?? first.totalSleep);
+  if (Number.isFinite(exportedSleep) && exportedSleep > 0) {
+    return {
+      hours: round(exportedSleep, 2),
+      derived: false,
+    };
+  }
+
+  const estimatedSleep =
+    hoursBetween(first.sleepStart, first.sleepEnd) ??
+    hoursBetween(first.inBedStart, first.inBedEnd);
+
+  return {
+    hours: Number.isFinite(estimatedSleep) ? estimatedSleep : 0,
+    derived: Number.isFinite(estimatedSleep),
+  };
 }
 
 function summarizeQuantityMetric(metric, digits = 1) {
@@ -168,7 +197,8 @@ function summarizeSleep(metric) {
   const data = metric.data || [];
   const first = data[0] || {};
   const inBed = round(Number(first.inBed || 0), 2);
-  const asleep = round(Number(first.asleep || first.totalSleep || 0), 2);
+  const sleepDuration = resolveSleepDuration(metric);
+  const asleep = sleepDuration.hours;
   const deep = round(Number(first.deep || 0), 2);
   const rem = round(Number(first.rem || 0), 2);
   const core = round(Number(first.core || 0), 2);
@@ -176,7 +206,7 @@ function summarizeSleep(metric) {
   const efficiency = inBed > 0 && asleep > 0 ? round((asleep / inBed) * 100, 0) : 0;
 
   return {
-    keyMetric: inBed,
+    keyMetric: asleep,
     keyUnit: "h",
     cards: [
       createStat("卧床时长", inBed, "h"),
@@ -210,7 +240,11 @@ function summarizeSleep(metric) {
     },
     insights: [
       inBed ? `总卧床时长约 ${inBed} 小时。` : "当前没有有效的卧床时长数据。",
-      asleep ? `有效睡眠约 ${asleep} 小时。` : "当前没有有效的睡眠时长数据。",
+      asleep
+        ? sleepDuration.derived
+          ? `原始导出没有有效睡眠值，已按起止时间估算为 ${asleep} 小时。`
+          : `有效睡眠约 ${asleep} 小时。`
+        : "当前没有有效的睡眠时长数据。",
       deep || rem || core
         ? `阶段拆解显示深睡 ${deep}h、REM ${rem}h、核心睡眠 ${core}h。`
         : "睡眠阶段数据较少，暂时更适合看总时长而不是结构。",
@@ -300,14 +334,14 @@ function buildComprehensiveAnalysis(day) {
   findings.push(`当天共覆盖 ${metricNames.size} 类指标，数据完整度为 ${day.completeness.coveragePercent}%。`);
 
   if (sleep) {
-    const sleepHours = sleep.cards.find((item) => item.label === "卧床时长")?.value ?? 0;
+    const sleepHours = sleep.cards.find((item) => item.label === "有效睡眠")?.value ?? 0;
     const efficiency = sleep.cards.find((item) => item.label === "睡眠效率")?.value ?? 0;
     if (sleepHours >= 7) {
       score += 10;
-      findings.push(`卧床时长 ${sleepHours} 小时，恢复窗口相对充足。`);
+      findings.push(`有效睡眠 ${sleepHours} 小时，恢复窗口相对充足。`);
     } else if (sleepHours > 0) {
       score -= 6;
-      findings.push(`卧床时长 ${sleepHours} 小时，恢复窗口偏短。`);
+      findings.push(`有效睡眠 ${sleepHours} 小时，恢复窗口偏短。`);
       recommendations.push("今晚尽量提前进入睡前缓冲，给恢复更多时间。");
     } else {
       cautions.push("睡眠记录缺失，恢复判断可信度偏低。");

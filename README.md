@@ -29,7 +29,7 @@
 
 - [Health Auto Export: Sync Apple Health Data to Google Drive](https://help.healthyapps.dev/en/health-auto-export/automations/google-drive/)
 
-本仓库默认假设你已经完成上面的配置，并且拿到了一个可以访问到导出 JSON 文件的 Google Drive 文件夹链接。
+本仓库默认假设你已经完成上面的配置，并且拿到了一个公开共享的 Google Drive 文件夹链接。这个链接需要能让任何持有链接的人读取文件夹内容，否则内置同步脚本无法抓取导出的 JSON 文件。
 
 ## 功能概览
 

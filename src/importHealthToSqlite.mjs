@@ -123,8 +123,20 @@ GROUP BY DATE(record_at, 'localtime'), metric_name, units;
 CREATE VIEW IF NOT EXISTS daily_sleep_summary AS
 SELECT
   DATE(record_at, 'localtime') AS day,
-  ROUND(MAX(in_bed), 4) AS in_bed_hours,
-  ROUND(MAX(asleep), 4) AS asleep_hours,
+  ROUND(
+    COALESCE(
+      NULLIF(MAX(in_bed), 0),
+      (julianday(MAX(sleep_end)) - julianday(MIN(sleep_start))) * 24.0
+    ),
+    4
+  ) AS in_bed_hours,
+  ROUND(
+    COALESCE(
+      NULLIF(MAX(asleep), 0),
+      (julianday(MAX(sleep_end)) - julianday(MIN(sleep_start))) * 24.0
+    ),
+    4
+  ) AS asleep_hours,
   ROUND(MAX(deep), 4) AS deep_hours,
   ROUND(MAX(rem), 4) AS rem_hours,
   MIN(sleep_start) AS sleep_start,

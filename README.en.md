@@ -29,7 +29,7 @@ Official setup guide:
 
 - [Health Auto Export: Sync Apple Health Data to Google Drive](https://help.healthyapps.dev/en/health-auto-export/automations/google-drive/)
 
-This repository assumes that the setup above is already complete and that you have a Google Drive folder containing the exported JSON files.
+This repository assumes that the setup above is already complete and that you have a publicly shared Google Drive folder link containing the exported JSON files. The link must allow anyone with the link to read the folder contents, otherwise the bundled sync script cannot fetch the exported JSON files.
 
 ## What It Does
 
