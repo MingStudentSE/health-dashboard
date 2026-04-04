@@ -3,41 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>暮色养生录</title>
+    <title>健康阅览室</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="backdrop"></div>
+    <header class="site-header">
+      <a class="brand-mark" href="./index.html">
+        <span class="brand-mark-en">Health Reading Room</span>
+        <strong>健康阅览室</strong>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a class="site-nav-link is-active" href="./index.html">总览</a>
+        <a class="site-nav-link" href="./body.html">身体数据</a>
+        <a class="site-nav-link" href="./workout.html">训练记录</a>
+      </nav>
+    </header>
+
     <main class="page-shell">
-      <section class="hero-panel">
+      <section class="hero-panel hero-panel-home">
         <div class="hero-copy">
-          <p class="eyebrow">暮色养生录</p>
-          <h1>最近健康状态总览</h1>
+          <p class="eyebrow">健康阅览室</p>
+          <h1>把训练、睡眠与体成分，整理成一座可以慢慢翻阅的身体图书馆</h1>
           <p class="hero-text">
-            这里优先回答一个问题：你最近这段时间的健康状态怎么样。首页会先展示最近状态、趋势判断和报告日历，单日详情与反馈统一放到每日页面中。
+            首页不再像后台面板，而像馆内总览。你可以先看最近状态的走向，再按主题进入身体数据室、训练档案室和每日记录室，把健康变化读成连续的章节。
           </p>
+          <div class="page-actions">
+            <a class="solid-button" href="./body.html">进入身体数据室</a>
+            <a class="soft-button" href="./workout.html">翻看训练档案</a>
+          </div>
         </div>
-        <div class="hero-stats" id="hero-stats"></div>
+        <div class="hero-side-stack">
+          <div class="hero-stats" id="hero-stats"></div>
+          <article class="hero-note">
+            <p class="section-kicker">馆内导览</p>
+            <h2>先看全局，再按章节阅读</h2>
+            <p class="section-note">
+              总览页负责判断方向，身体页负责测量变化，训练页负责回看训练结构，每日页则把客观数据和主观体感装订进同一篇日记。
+            </p>
+          </article>
+        </div>
       </section>
 
-      <section class="paper-panel">
+      <section class="overview-grid">
+        <a class="overview-link" href="./body.html">
+          <p class="section-kicker">Body Room</p>
+          <h2>身体围度与体成分</h2>
+          <p>像查阅馆藏索引一样，把体重、体脂、肌肉和三围放进同一条时间轴。</p>
+        </a>
+        <a class="overview-link" href="./workout.html">
+          <p class="section-kicker">Training Archive</p>
+          <h2>训练内容与训练量</h2>
+          <p>按堂保存动作、组次与反馈，让每次训练都像一张可回看的借阅卡。</p>
+        </a>
+        <a class="overview-link" id="latest-daily-link" href="./daily.html">
+          <p class="section-kicker">Daily Note</p>
+          <h2>每日反馈与日志</h2>
+          <p>把睡眠、步数、心率和当天感受放进同一页，留下真正属于这一天的批注。</p>
+        </a>
+      </section>
+
+      <section class="paper-panel page-section">
         <div class="section-head">
           <div>
-            <p class="section-kicker">身体数据</p>
-            <h2>身体围度与体成分记录</h2>
+            <p class="section-kicker">身体数据室</p>
+            <h2>围度与体成分索引</h2>
           </div>
           <div class="page-actions">
-            <a class="solid-button" href="./body.html">进入身体数据页</a>
+            <a class="solid-button" href="./body.html">进入身体数据室</a>
           </div>
         </div>
         <p class="section-note">
-          这里记录体重、体脂、骨骼肌和三围。每次保存后都会自动生成一段本次判断，并把变化趋势画出来。
+          这里记录体重、体脂、骨骼肌和三围。每次保存后都会生成本次测量的注解，并把变化趋势整理成可阅读的章节曲线。
         </p>
         <div class="body-summary-grid" id="body-summary-grid"></div>
         <div class="body-summary-columns">
@@ -52,18 +95,18 @@
         </div>
       </section>
 
-      <section class="paper-panel">
+      <section class="paper-panel page-section">
         <div class="section-head">
           <div>
-            <p class="section-kicker">健身记录</p>
+            <p class="section-kicker">训练档案室</p>
             <h2>个人训练日志</h2>
           </div>
           <div class="page-actions">
-            <a class="solid-button" href="./workout.html">进入健身记录页</a>
+            <a class="solid-button" href="./workout.html">进入训练档案室</a>
           </div>
         </div>
         <p class="section-note">
-          按次记录训练动作、每组次数和重量，同时保存教练评价与个人反馈。这样你后面回看训练安排时，能直接看到当堂内容和训练重点。
+          按次记录训练动作、每组次数和重量，同时保存教练评价与个人反馈。以后回看时，你看到的不只是数字，而是一堂课的完整档案。
         </p>
         <div class="body-summary-grid" id="workout-summary-grid"></div>
         <div class="body-summary-columns">
@@ -74,11 +117,11 @@
         </div>
       </section>
 
-      <section class="detail-layout">
+      <section class="detail-layout-overview">
         <article class="paper-panel detail-main">
           <div class="section-head">
             <div>
-              <p class="section-kicker">近期判断</p>
+              <p class="section-kicker">本周馆讯</p>
               <h2 id="recent-analysis-title">最近状态分析</h2>
             </div>
             <div class="range-pill" id="recent-range-label"></div>
@@ -99,18 +142,48 @@
         </article>
 
         <aside class="paper-panel detail-side">
-          <p class="section-kicker">报告日历</p>
-          <h2>哪些日期有报告</h2>
-          <p class="section-note">按月查看已生成报告的日期，点击任意一天进入专属页面。</p>
+          <p class="section-kicker">日历书架</p>
+          <h2>报告热力图</h2>
+          <p class="section-note">用年份和月份切换同一套书架，颜色越深说明当天越值得翻开，点击任意一天进入专属页面。</p>
+          <div class="calendar-compact-toolbar">
+            <button id="calendar-picker-trigger" class="calendar-picker-trigger" type="button">2026年4月</button>
+            <div class="calendar-meta" id="calendar-meta"></div>
+          </div>
           <div id="calendar-list" class="calendar-list"></div>
         </aside>
       </section>
+
+      <dialog id="calendar-picker-dialog" class="preview-dialog calendar-picker-dialog">
+        <div class="preview-dialog-card calendar-picker-card">
+          <div class="preview-head">
+            <div>
+              <p class="section-kicker">月份切换</p>
+              <h2 id="calendar-picker-title">选择报告月份</h2>
+            </div>
+            <button class="soft-button" id="calendar-picker-close" type="button">关闭</button>
+          </div>
+          <div class="calendar-toolbar calendar-toolbar-dialog">
+            <label class="calendar-field">
+              <span>年份</span>
+              <select id="calendar-year-select"></select>
+            </label>
+            <label class="calendar-field">
+              <span>月份</span>
+              <select id="calendar-month-select"></select>
+            </label>
+            <div class="calendar-nav">
+              <button id="calendar-prev-month" class="soft-button" type="button">上一月</button>
+              <button id="calendar-next-month" class="soft-button" type="button">下一月</button>
+            </div>
+          </div>
+        </div>
+      </dialog>
 
       <dialog id="calendar-preview" class="preview-dialog">
         <form method="dialog" class="preview-dialog-card">
           <div class="preview-head">
             <div>
-              <p class="section-kicker">报告摘要</p>
+              <p class="section-kicker">单日摘要</p>
               <h2 id="preview-date">某一天</h2>
             </div>
             <button class="soft-button" value="cancel" type="submit">关闭</button>
@@ -127,18 +200,23 @@
         </form>
       </dialog>
 
-      <section class="paper-panel">
+      <section class="paper-panel page-section">
         <div class="section-head">
           <div>
-            <p class="section-kicker">日次概览</p>
+            <p class="section-kicker">总览曲线</p>
             <h2>全量指标趋势</h2>
           </div>
-          <p class="section-note">趋势保留在首页，因为它最适合用来判断你最近一段时间是在变好、变差还是波动。</p>
+          <p class="section-note">趋势继续保留在首页，因为它最适合回答一个问题：你最近这一段时间，是在修复、波动，还是稳步向前。</p>
         </div>
         <div class="chart-grid" id="trend-grid"></div>
       </section>
     </main>
 
+    <footer class="site-footer">
+      <p>Health Reading Room</p>
+      <span>本地优先 · 把训练、体成分与每日反馈收进同一座健康阅览室</span>
+    </footer>
+
     <script type="module" src="./app.js"></script>
   </body>
-  </html>
+</html>

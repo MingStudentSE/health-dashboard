@@ -3,65 +3,94 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>每日反馈页</title>
+    <title>每日记录室</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="backdrop"></div>
+    <header class="site-header">
+      <a class="brand-mark" href="./index.html">
+        <span class="brand-mark-en">Health Reading Room</span>
+        <strong>健康阅览室</strong>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a class="site-nav-link" href="./index.html">总览</a>
+        <a class="site-nav-link" href="./body.html">身体数据</a>
+        <a class="site-nav-link" href="./workout.html">训练记录</a>
+      </nav>
+    </header>
+
     <main class="page-shell">
-      <section class="hero-panel">
+      <section class="hero-panel hero-panel-daily">
         <div class="hero-copy">
-          <p class="eyebrow">Daily Reflection</p>
+          <p class="eyebrow">Daily Note</p>
           <h1 id="daily-page-title">每日专属页</h1>
           <p class="hero-text" id="daily-page-subtitle">
-            在这里查看当天的完整数据、写下日志，并生成一份结合主观感受与客观指标的反馈。
+            把今天的客观数据和主观感受放进同一页，形成一份真正属于这一天的健康批注。
           </p>
           <div class="page-actions">
             <a class="soft-button" href="./index.html">返回总览</a>
           </div>
         </div>
-        <div class="hero-stats" id="daily-hero-stats"></div>
+        <div class="hero-side-stack daily-side-stack">
+          <div class="hero-stats daily-hero-stats" id="daily-hero-stats"></div>
+          <article class="hero-note daily-hero-note">
+            <p class="section-kicker">Daily Practice</p>
+            <h2>数据给出方向，日志补上语境</h2>
+            <p class="section-note">这页不只是看分数，而是把发生了什么、身体怎么回应、明天该怎么调，一次讲清楚。</p>
+          </article>
+        </div>
       </section>
 
       <section class="detail-layout">
         <article class="paper-panel detail-main">
-          <div class="section-head">
+          <div class="section-head daily-summary-head">
             <div>
-              <p class="section-kicker">专业分析</p>
+              <p class="section-kicker">当日总评</p>
               <h2 id="daily-analysis-tone">载入中</h2>
+              <p class="analysis-summary daily-summary-copy" id="daily-analysis-summary"></p>
             </div>
             <div class="analysis-score" id="daily-analysis-score"></div>
           </div>
+          <section class="daily-analysis-grid">
+            <div class="analysis-block">
+              <h3>关键发现</h3>
+              <div id="daily-finding-list" class="insight-list compact-list"></div>
+            </div>
+            <div class="analysis-block">
+              <h3>行动建议</h3>
+              <div id="daily-recommendation-list" class="insight-list compact-list"></div>
+            </div>
+            <div class="analysis-block">
+              <h3>需要留意</h3>
+              <div id="daily-caution-list" class="insight-list compact-list"></div>
+            </div>
+          </section>
 
-          <p class="analysis-summary" id="daily-analysis-summary"></p>
-          <div class="analysis-block">
-            <h3>关键发现</h3>
-            <div id="daily-finding-list" class="insight-list"></div>
-          </div>
-          <div class="analysis-block">
-            <h3>行动建议</h3>
-            <div id="daily-recommendation-list" class="insight-list"></div>
-          </div>
-          <div class="analysis-block">
-            <h3>需要留意</h3>
-            <div id="daily-caution-list" class="insight-list"></div>
-          </div>
-          <div class="detail-metrics" id="daily-detail-metrics"></div>
-          <div class="coverage-strip" id="daily-metric-coverage"></div>
-          <div class="metric-panel-list" id="daily-metric-panels"></div>
+          <section class="daily-metric-section">
+            <div class="section-head daily-subsection-head">
+              <div>
+                <p class="section-kicker">指标总览</p>
+                <h3>关键摘要与明细</h3>
+              </div>
+            </div>
+            <div class="detail-metrics" id="daily-detail-metrics"></div>
+            <div class="coverage-strip" id="daily-metric-coverage"></div>
+            <div class="metric-panel-list" id="daily-metric-panels"></div>
+          </section>
         </article>
 
         <aside class="paper-panel detail-side">
           <p class="section-kicker">日志与反馈</p>
           <h2>写给今天的自己</h2>
           <p class="section-note">
-            先写下今天的主观感受、事件、状态变化，再结合按钮生成一份每日反馈。
+            先写下今天的主观感受、事件和状态变化，再结合按钮生成一份每日反馈。
           </p>
           <label class="journal-label" for="journal-input">今日日志</label>
           <textarea id="journal-input" class="journal-input" placeholder="例如：昨晚睡得晚，但上午精神还可以。午后有点累，散步后状态好一些。"></textarea>
@@ -81,6 +110,11 @@
       </section>
     </main>
 
+    <footer class="site-footer">
+      <p>Daily Note Room</p>
+      <span>单日指标、主观日志与反馈生成</span>
+    </footer>
+
     <script type="module" src="./daily.js"></script>
   </body>
-  </html>
+</html>

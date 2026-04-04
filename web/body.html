@@ -3,124 +3,174 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>身体数据页</title>
+    <title>身体数据室</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="backdrop"></div>
+    <header class="site-header">
+      <a class="brand-mark" href="./index.html">
+        <span class="brand-mark-en">Health Reading Room</span>
+        <strong>健康阅览室</strong>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a class="site-nav-link" href="./index.html">总览</a>
+        <a class="site-nav-link is-active" href="./body.html">身体数据</a>
+        <a class="site-nav-link" href="./workout.html">训练记录</a>
+      </nav>
+    </header>
+
     <main class="page-shell">
-      <section class="hero-panel">
-        <div class="hero-copy">
-          <p class="eyebrow">身体数据页</p>
-          <h1>记录体成分、三围和每次变化</h1>
+      <section class="hero-panel hero-panel-body hero-panel-quiet">
+        <div class="hero-copy body-hero-copy">
+          <p class="eyebrow">身体数据室</p>
+          <h1>围绕围度与体成分，把变化整理成可追踪的目录</h1>
           <p class="hero-text">
-            这页专门记录体重、体脂、骨骼肌和三围。每次保存后都会自动生成一段本次分析，并把关键指标的变化趋势画出来。
+            这里保存每一次测量，把单次变化与长期走势一起陈列。重点从来不是某一个数字，而是持续记录后慢慢显现出来的方向。
           </p>
           <div class="page-actions">
             <a class="soft-button" href="./index.html">返回首页</a>
           </div>
         </div>
-        <div class="hero-stats" id="body-hero-stats"></div>
+        <aside class="quiet-aside">
+          <p class="section-kicker">Measurement Rhythm</p>
+          <div class="quiet-aside-body">
+            <p>先把记录节奏固定下来，再比较变化。</p>
+            <ul class="quiet-note-list">
+              <li>尽量在相近时间段记录</li>
+              <li>先看趋势，再看单次数值</li>
+              <li>围度与体脂一起判断更稳</li>
+            </ul>
+          </div>
+        </aside>
       </section>
 
-      <section class="body-layout">
-        <article class="body-form-panel">
-          <div class="section-head">
-            <div>
-              <p class="section-kicker">录入</p>
-              <h2>新增或更新一次记录</h2>
-            </div>
+      <section class="paper-panel page-section quiet-overview">
+        <div class="section-head section-head-quiet">
+          <div>
+            <p class="section-kicker">索引总览</p>
+            <h2>近期身体概览</h2>
           </div>
-          <p class="section-subnote">
-            以日期为主键。同一天再次保存会覆盖原来的那一条，适合你测完一次后回填完整数值。
-          </p>
-          <form id="body-record-form" class="form-grid">
-            <div class="form-field">
-              <label for="record-date">日期</label>
-              <input id="record-date" name="date" type="date" required />
+          <button class="solid-button" id="open-body-dialog-button" type="button">登记身体记录</button>
+        </div>
+        <div class="quiet-overview-body">
+          <div class="hero-stats body-hero-stats quiet-stat-strip" id="body-hero-stats"></div>
+          <article class="body-history-panel workout-summary-panel summary-panel-quiet summary-panel-wide">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">馆员批注</p>
+                <h2>最近身体判断</h2>
+              </div>
             </div>
-            <div class="form-field">
-              <label for="record-weight">体重</label>
-              <input id="record-weight" name="weight" type="number" step="0.1" placeholder="kg" />
+            <p class="section-note">录入收进浮窗里，首屏只留下真正值得回看的判断与建议。</p>
+            <div class="summary-columns summary-columns-single body-summary-flow">
+              <section class="summary-stack">
+                <p class="section-kicker">观察</p>
+                <div class="insight-list compact-list" id="body-summary-list"></div>
+              </section>
+              <section class="summary-stack">
+                <p class="section-kicker">建议</p>
+                <div class="insight-list compact-list" id="body-recommendation-list"></div>
+              </section>
             </div>
-            <div class="form-field">
-              <label for="record-body-fat-rate">体脂率</label>
-              <input id="record-body-fat-rate" name="bodyFatRate" type="number" step="0.1" placeholder="%" />
-            </div>
-            <div class="form-field">
-              <label for="record-skeletal-muscle">骨骼肌</label>
-              <input id="record-skeletal-muscle" name="skeletalMuscle" type="number" step="0.1" placeholder="kg" />
-            </div>
-            <div class="form-field">
-              <label for="record-chest">胸围</label>
-              <input id="record-chest" name="chest" type="number" step="0.1" placeholder="cm" />
-            </div>
-            <div class="form-field">
-              <label for="record-waist">腰围</label>
-              <input id="record-waist" name="waist" type="number" step="0.1" placeholder="cm" />
-            </div>
-            <div class="form-field">
-              <label for="record-hip">臀围</label>
-              <input id="record-hip" name="hip" type="number" step="0.1" placeholder="cm" />
-            </div>
-            <div class="form-field">
-              <label for="record-body-age">身体年龄</label>
-              <input id="record-body-age" name="bodyAge" type="number" step="0.1" placeholder="岁" />
-            </div>
-            <div class="form-field">
-              <label for="record-score">评分</label>
-              <input id="record-score" name="score" type="number" step="1" placeholder="/100" />
-            </div>
-            <div class="form-field span-2">
-              <label for="record-note">备注</label>
-              <textarea id="record-note" name="note" placeholder="记录这次测量的背景，比如饭后、晨起、在健身房体测仪上测得。"></textarea>
-            </div>
-          </form>
-          <div class="page-actions">
-            <button class="solid-button" id="save-record-button" type="submit" form="body-record-form">保存记录</button>
-            <button class="soft-button" id="reset-record-button" type="button">清空表单</button>
-          </div>
-          <p class="field-hint" id="form-status">本页需要本地服务模式才能保存记录。</p>
-        </article>
-
-        <article class="body-history-panel">
-          <div class="section-head">
-            <div>
-              <p class="section-kicker">摘要</p>
-              <h2>最近身体判断</h2>
-            </div>
-          </div>
-          <div class="insight-list" id="body-summary-list"></div>
-          <div class="insight-list" id="body-recommendation-list"></div>
-        </article>
+          </article>
+        </div>
       </section>
 
-      <section class="paper-panel">
+      <section class="paper-panel page-section">
         <div class="section-head">
           <div>
-            <p class="section-kicker">趋势</p>
+            <p class="section-kicker">变化曲线</p>
             <h2>关键指标变化</h2>
           </div>
+          <p class="section-note">把关键指标铺开看，比盯住某一天的数字更有决策价值。</p>
         </div>
         <div class="chart-grid" id="body-trend-grid"></div>
       </section>
 
-      <section class="paper-panel">
+      <section class="paper-panel page-section">
         <div class="section-head">
           <div>
-            <p class="section-kicker">历史记录</p>
+            <p class="section-kicker">历史卡片</p>
             <h2>每次数据与单次分析</h2>
           </div>
         </div>
         <div class="body-history-list" id="body-history-list"></div>
       </section>
     </main>
+
+    <dialog id="body-form-dialog" class="preview-dialog workout-form-dialog">
+      <div class="preview-dialog-card workout-form-dialog-card">
+        <div class="preview-head">
+          <div>
+            <p class="section-kicker">身体记录登记</p>
+            <h2 id="body-dialog-title">新增或更新一次记录</h2>
+          </div>
+          <button class="soft-button" id="close-body-dialog-button" type="button">关闭</button>
+        </div>
+        <p class="section-subnote">
+          以日期为主键。同一天再次保存会覆盖原来的那一条，适合你测完一次后回填完整数值。
+        </p>
+        <form id="body-record-form" class="form-grid">
+          <div class="form-field">
+            <label for="record-date">日期</label>
+            <input id="record-date" name="date" type="date" required />
+          </div>
+          <div class="form-field">
+            <label for="record-weight">体重</label>
+            <input id="record-weight" name="weight" type="number" step="0.1" placeholder="kg" />
+          </div>
+          <div class="form-field">
+            <label for="record-body-fat-rate">体脂率</label>
+            <input id="record-body-fat-rate" name="bodyFatRate" type="number" step="0.1" placeholder="%" />
+          </div>
+          <div class="form-field">
+            <label for="record-skeletal-muscle">骨骼肌</label>
+            <input id="record-skeletal-muscle" name="skeletalMuscle" type="number" step="0.1" placeholder="kg" />
+          </div>
+          <div class="form-field">
+            <label for="record-chest">胸围</label>
+            <input id="record-chest" name="chest" type="number" step="0.1" placeholder="cm" />
+          </div>
+          <div class="form-field">
+            <label for="record-waist">腰围</label>
+            <input id="record-waist" name="waist" type="number" step="0.1" placeholder="cm" />
+          </div>
+          <div class="form-field">
+            <label for="record-hip">臀围</label>
+            <input id="record-hip" name="hip" type="number" step="0.1" placeholder="cm" />
+          </div>
+          <div class="form-field">
+            <label for="record-body-age">身体年龄</label>
+            <input id="record-body-age" name="bodyAge" type="number" step="0.1" placeholder="岁" />
+          </div>
+          <div class="form-field">
+            <label for="record-score">评分</label>
+            <input id="record-score" name="score" type="number" step="1" placeholder="/100" />
+          </div>
+          <div class="form-field span-2">
+            <label for="record-note">备注</label>
+            <textarea id="record-note" name="note" placeholder="记录这次测量的背景，比如饭后、晨起、在健身房体测仪上测得。"></textarea>
+          </div>
+        </form>
+        <div class="page-actions">
+          <button class="solid-button" id="save-record-button" type="submit" form="body-record-form">保存到数据室</button>
+          <button class="soft-button" id="reset-record-button" type="button">清空表单</button>
+        </div>
+        <p class="field-hint" id="form-status">本页需要本地服务模式才能保存记录。</p>
+      </div>
+    </dialog>
+
+    <footer class="site-footer">
+      <p>Body Metrics Room</p>
+      <span>围度、体重、体脂与评分统一归档</span>
+    </footer>
 
     <script type="module" src="./body.js"></script>
   </body>

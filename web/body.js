@@ -22,6 +22,37 @@ function formatMetricValue(value, unit = "") {
   return `${formatNumber(value, inferDigits(unit))}${unit && unit !== "/100" ? ` ${unit}` : unit === "/100" ? unit : ""}`;
 }
 
+function chartRangeLabel(points) {
+  if (!points.length) return "--";
+  if (points.length === 1) return `仅 ${points[0].label}`;
+  return `${points[0].label} 至 ${points.at(-1).label} · ${points.length} 天`;
+}
+
+function bindChartTooltip(target) {
+  const tooltip = target.querySelector(".chart-hover-tooltip");
+  if (!tooltip) return;
+
+  const hideTooltip = () => {
+    tooltip.hidden = true;
+  };
+
+  target.onpointermove = (event) => {
+    const hit = event.target.closest(".chart-hit");
+    if (!hit || !target.contains(hit)) {
+      hideTooltip();
+      return;
+    }
+
+    const rect = target.getBoundingClientRect();
+    tooltip.innerHTML = `<strong>${hit.dataset.label}</strong><span>${hit.dataset.value}</span>`;
+    tooltip.style.left = `${Math.min(Math.max(event.clientX - rect.left, 18), rect.width - 18)}px`;
+    tooltip.style.top = `${Math.max(event.clientY - rect.top - 14, 18)}px`;
+    tooltip.hidden = false;
+  };
+
+  target.onpointerleave = hideTooltip;
+}
+
 function renderAnalysisList(targetId, items, emptyText) {
   const target = document.querySelector(targetId);
   target.innerHTML = (items?.length ? items : [emptyText]).map((item) => `<article class="insight-item">${item}</article>`).join("");
@@ -63,13 +94,15 @@ function renderLineChart(targetId, points, color, unit = "") {
       <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="rgba(120,92,68,.15)" />
       <path d="${path} L ${coords.at(-1).x} ${height - padding} L ${coords[0].x} ${height - padding} Z" fill="url(#${gradientId})"></path>
       <path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-      ${coords.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="4" fill="${color}" stroke="rgba(255,250,242,.95)" stroke-width="2"></circle>`).join("")}
+      ${coords.map((point) => `<circle class="chart-hit" data-label="${point.label}" data-value="${formatMetricValue(point.value, unit)}" cx="${point.x}" cy="${point.y}" r="12" fill="transparent"></circle><circle cx="${point.x}" cy="${point.y}" r="5" fill="${color}" stroke="rgba(255,250,242,.95)" stroke-width="2"></circle>`).join("")}
     </svg>
+    <div class="chart-hover-tooltip" hidden></div>
     <div class="chart-caption">
-      <span>${points[0].label}</span>
+      <span>${chartRangeLabel(points)}</span>
       <span>${formatMetricValue(points.at(-1).value, unit)}</span>
     </div>
   `;
+  bindChartTooltip(target);
 }
 
 async function loadDashboard() {
@@ -108,6 +141,33 @@ function fillForm(record = null) {
   form.elements.note.value = record?.note ?? "";
 }
 
+function getBodyDialog() {
+  return document.querySelector("#body-form-dialog");
+}
+
+function openBodyDialog(record = null) {
+  const dialog = getBodyDialog();
+  fillForm(record);
+  document.querySelector("#body-dialog-title").textContent = record ? `编辑 ${record.date} 的记录` : "新增或更新一次记录";
+  document.querySelector("#form-status").textContent = record
+    ? `已载入 ${record.date}，保存后会覆盖这一天的数据。`
+    : "填写完成后保存，这次身体记录会进入趋势与历史。";
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "open");
+  }
+}
+
+function closeBodyDialog() {
+  const dialog = getBodyDialog();
+  if (dialog.open && typeof dialog.close === "function") {
+    dialog.close();
+    return;
+  }
+  dialog.removeAttribute("open");
+}
+
 function renderHero(bodyMetrics) {
   const hero = bodyMetrics.summary?.hero || [];
   document.querySelector("#body-hero-stats").innerHTML = hero.length
@@ -135,7 +195,7 @@ function renderSummary(bodyMetrics) {
 }
 
 function renderTrends(bodyMetrics) {
-  const palette = ["#b55d3d", "#7b8b6f", "#7d5460", "#9b7a49", "#65829c", "#8a674f", "#5f7d5a", "#8a5b4f"];
+  const palette = ["#2673cc", "#74bded", "#8fcaf0", "#9edcc7", "#f7d77b", "#4d7fb0", "#5ea8cf", "#89bfd9"];
   const series = (bodyMetrics.trendSeries || []).filter((item) => item.points.length);
   document.querySelector("#body-trend-grid").innerHTML = series.length
     ? series
@@ -242,8 +302,23 @@ async function deleteRecord(date) {
 }
 
 function bindActions(state) {
+  const bodyDialog = getBodyDialog();
+
+  document.querySelector("#open-body-dialog-button").addEventListener("click", () => {
+    openBodyDialog();
+  });
+
+  document.querySelector("#close-body-dialog-button").addEventListener("click", () => {
+    closeBodyDialog();
+  });
+
+  bodyDialog.addEventListener("click", (event) => {
+    if (event.target === bodyDialog) closeBodyDialog();
+  });
+
   document.querySelector("#reset-record-button").addEventListener("click", () => {
     fillForm();
+    document.querySelector("#body-dialog-title").textContent = "新增或更新一次记录";
     document.querySelector("#form-status").textContent = "表单已重置。";
   });
 
@@ -254,6 +329,8 @@ function bindActions(state) {
     try {
       state.bodyMetrics = await saveRecord();
       renderAll(state.bodyMetrics);
+      document.querySelector("#body-dialog-title").textContent = "新增或更新一次记录";
+      closeBodyDialog();
     } catch (error) {
       status.textContent = error.message;
     }
@@ -263,9 +340,7 @@ function bindActions(state) {
     const editDate = event.target.closest("[data-edit-date]")?.dataset.editDate;
     if (editDate) {
       const record = (state.bodyMetrics.records || []).find((item) => item.date === editDate);
-      fillForm(record);
-      document.querySelector("#form-status").textContent = `已载入 ${editDate}，保存后会覆盖这一天的数据。`;
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      openBodyDialog(record);
       return;
     }
 

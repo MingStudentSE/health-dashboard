@@ -22,6 +22,37 @@ function formatMetricValue(value, unit = "") {
   return `${formatNumber(value, inferDigits(unit))}${unit ? ` ${unit}` : ""}`;
 }
 
+function chartRangeLabel(points) {
+  if (!points.length) return "--";
+  if (points.length === 1) return `仅 ${points[0].label}`;
+  return `${points[0].label} 至 ${points.at(-1).label} · ${points.length} 天`;
+}
+
+function bindChartTooltip(target) {
+  const tooltip = target.querySelector(".chart-hover-tooltip");
+  if (!tooltip) return;
+
+  const hideTooltip = () => {
+    tooltip.hidden = true;
+  };
+
+  target.onpointermove = (event) => {
+    const hit = event.target.closest(".chart-hit");
+    if (!hit || !target.contains(hit)) {
+      hideTooltip();
+      return;
+    }
+
+    const rect = target.getBoundingClientRect();
+    tooltip.innerHTML = `<strong>${hit.dataset.label}</strong><span>${hit.dataset.value}</span>`;
+    tooltip.style.left = `${Math.min(Math.max(event.clientX - rect.left, 18), rect.width - 18)}px`;
+    tooltip.style.top = `${Math.max(event.clientY - rect.top - 14, 18)}px`;
+    tooltip.hidden = false;
+  };
+
+  target.onpointerleave = hideTooltip;
+}
+
 function metricTile(label, value, suffix = "") {
   return `
     <article class="metric-tile">
@@ -70,14 +101,16 @@ function renderLineChart(target, points, color, unit = "") {
       <path d="${path} L ${coords.at(-1).x} ${height - padding} L ${coords[0].x} ${height - padding} Z" fill="url(#${target.id}-fill)"></path>
       <path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
       ${coords
-        .map((point) => `<circle cx="${point.x}" cy="${point.y}" r="4" fill="${color}" stroke="rgba(255,250,242,.95)" stroke-width="2"></circle>`)
+        .map((point) => `<circle class="chart-hit" data-label="${point.label}" data-value="${formatMetricValue(point.value, unit)}" cx="${point.x}" cy="${point.y}" r="12" fill="transparent"></circle><circle cx="${point.x}" cy="${point.y}" r="5" fill="${color}" stroke="rgba(255,250,242,.95)" stroke-width="2"></circle>`)
         .join("")}
     </svg>
+    <div class="chart-hover-tooltip" hidden></div>
     <div class="chart-caption">
-      <span>${points[0].label}</span>
+      <span>${chartRangeLabel(points)}</span>
       <span>${formatMetricValue(points.at(-1).value, unit)}</span>
     </div>
   `;
+  bindChartTooltip(target);
 }
 
 function renderBarChart(target, points, color, unit = "") {
@@ -100,15 +133,17 @@ function renderBarChart(target, points, color, unit = "") {
           const valueHeight = (point.value / maxValue) * (height - padding * 2);
           const x = padding + index * ((width - padding * 2) / points.length) + 2;
           const y = height - padding - valueHeight;
-          return `<rect x="${x}" y="${y}" rx="8" ry="8" width="${Math.max(barWidth, 6)}" height="${valueHeight}" fill="${color}" opacity="${0.55 + (index / points.length) * 0.35}"></rect>`;
+          return `<rect class="chart-hit" data-label="${point.label}" data-value="${formatMetricValue(point.value, unit)}" x="${x}" y="${y}" rx="8" ry="8" width="${Math.max(barWidth, 6)}" height="${valueHeight}" fill="${color}" opacity="${0.55 + (index / points.length) * 0.35}"></rect>`;
         })
         .join("")}
     </svg>
+    <div class="chart-hover-tooltip" hidden></div>
     <div class="chart-caption">
-      <span>${points[0].label}</span>
+      <span>${chartRangeLabel(points)}</span>
       <span>${formatMetricValue(points.reduce((sum, item) => sum + item.value, 0), unit)}</span>
     </div>
   `;
+  bindChartTooltip(target);
 }
 
 function renderChart(target, chart, color) {
@@ -200,7 +235,7 @@ function renderDay(day) {
     .map((metric) => `<article class="coverage-chip"><strong>${metric.label}</strong><span>${metric.sampleCount} 条</span></article>`)
     .join("");
 
-  const palette = ["#b55d3d", "#7b8b6f", "#7d5460", "#9b7a49", "#65829c", "#8a674f"];
+  const palette = ["#2673cc", "#74bded", "#8fcaf0", "#9edcc7", "#f7d77b", "#4d7fb0"];
   const container = document.querySelector("#daily-metric-panels");
   container.innerHTML = day.metrics
     .map(

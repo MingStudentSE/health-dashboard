@@ -14,6 +14,7 @@ json/*
 # Runtime data and local notes
 data/*
 !data/.gitkeep
+!data/sync-manifest.json
 
 # Generated dashboards containing personal health data
 web/data/*

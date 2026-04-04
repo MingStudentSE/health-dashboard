@@ -3,92 +3,189 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>健身记录页</title>
+    <title>训练档案室</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="backdrop"></div>
+    <header class="site-header">
+      <a class="brand-mark" href="./index.html">
+        <span class="brand-mark-en">Health Reading Room</span>
+        <strong>健康阅览室</strong>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a class="site-nav-link" href="./index.html">总览</a>
+        <a class="site-nav-link" href="./body.html">身体数据</a>
+        <a class="site-nav-link is-active" href="./workout.html">训练记录</a>
+      </nav>
+    </header>
+
     <main class="page-shell">
-      <section class="hero-panel">
+      <section class="hero-panel hero-panel-body hero-panel-quiet">
         <div class="hero-copy">
-          <p class="eyebrow">健身记录页</p>
-          <h1>记录每一次训练内容</h1>
+          <p class="eyebrow">训练档案室</p>
+          <h1>把每一堂训练，整理成以后愿意再翻开的档案卡</h1>
           <p class="hero-text">
-            每堂训练都可以拆成多个动作，每个动作再记录每组次数和重量，并附上教练评价和你自己的体感反馈。
+            每堂训练都可以拆成多个动作、组次和重量，同时保留教练评价与主观体感。页面重点不是录入本身，而是让你之后真的愿意回来复盘。
           </p>
           <div class="page-actions">
             <a class="soft-button" href="./index.html">返回首页</a>
           </div>
         </div>
-        <div class="hero-stats" id="workout-hero-stats"></div>
+        <aside class="quiet-aside">
+          <p class="section-kicker">Training Archive</p>
+          <div class="quiet-aside-body">
+            <p>先看安排，再决定要不要补录。</p>
+            <ul class="quiet-note-list">
+              <li>用月历判断训练密度</li>
+              <li>用摘要回看最近变化</li>
+              <li>需要时再打开录入浮窗</li>
+            </ul>
+          </div>
+        </aside>
       </section>
 
-      <section class="body-layout">
-        <article class="body-form-panel">
-          <div class="section-head">
-            <div>
-              <p class="section-kicker">录入</p>
-              <h2>新增一堂训练</h2>
-            </div>
-          </div>
-          <form id="workout-record-form" class="form-grid">
-            <div class="form-field span-2">
-              <label for="workout-date">训练日期</label>
-              <input id="workout-date" name="date" type="date" required />
-            </div>
-            <div class="form-field span-2">
-              <label for="coach-evaluation">教练评价</label>
-              <textarea id="coach-evaluation" name="coachEvaluation" placeholder="例如：深蹲深度够了，但上背还可以再锁紧。"></textarea>
-            </div>
-            <div class="form-field span-2">
-              <label for="personal-feedback">个人反馈</label>
-              <textarea id="personal-feedback" name="personalFeedback" placeholder="例如：腿后侧发力明显，最后两组心肺压力大。"></textarea>
-            </div>
-          </form>
-
-          <div class="section-head workout-section-head">
-            <div>
-              <p class="section-kicker">动作</p>
-              <h3>本次训练动作</h3>
-            </div>
-            <button class="soft-button" id="add-exercise-button" type="button">添加动作</button>
-          </div>
-          <div id="exercise-list" class="exercise-list"></div>
-
-          <div class="page-actions">
-            <button class="solid-button" id="save-workout-button" type="submit" form="workout-record-form">保存训练记录</button>
-            <button class="soft-button" id="reset-workout-button" type="button">清空表单</button>
-          </div>
-          <p class="field-hint" id="workout-form-status">本页需要本地服务模式才能保存记录。</p>
-        </article>
-
-        <article class="body-history-panel">
-          <div class="section-head">
-            <div>
-              <p class="section-kicker">摘要</p>
-              <h2>最近训练摘要</h2>
-            </div>
-          </div>
-          <div class="insight-list" id="workout-summary-list"></div>
-        </article>
-      </section>
-
-      <section class="paper-panel">
-        <div class="section-head">
+      <section class="paper-panel page-section quiet-overview">
+        <div class="section-head section-head-quiet">
           <div>
-            <p class="section-kicker">历史</p>
-            <h2>过往训练记录</h2>
+            <p class="section-kicker">档案总览</p>
+            <h2>近期训练概览</h2>
+          </div>
+          <button class="solid-button" id="open-workout-dialog-button" type="button">登记训练档案</button>
+        </div>
+        <div class="quiet-overview-body">
+          <div class="hero-stats workout-hero-stats-grid quiet-stat-strip" id="workout-hero-stats"></div>
+          <article class="body-history-panel workout-summary-panel summary-panel-quiet summary-panel-wide">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">近期摘要</p>
+                <h2>最近训练摘要</h2>
+              </div>
+            </div>
+            <p class="section-note">录入已经收进浮窗里。首屏先服务回看、比较和复盘，需要时再进入记录。</p>
+            <div class="summary-columns summary-columns-single">
+              <section class="summary-stack">
+                <p class="section-kicker">近期观察</p>
+                <div class="insight-list compact-list" id="workout-summary-list"></div>
+              </section>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="paper-panel page-section">
+        <div class="section-head section-head-calendar">
+          <div>
+            <p class="section-kicker">训练月历</p>
+            <h2>训练日历</h2>
+            <p class="section-note">只保留一个月份入口，点击后再切换时间。颜色越深，代表当天训练越重，越值得回头翻看。</p>
+          </div>
+          <div class="calendar-header-tools">
+            <button id="workout-calendar-picker-trigger" class="calendar-picker-trigger" type="button">2026年4月</button>
+            <div class="calendar-meta" id="workout-calendar-meta"></div>
+            <div class="calendar-legend calendar-legend-subtle">
+              <span class="legend-item"><span class="legend-swatch" style="background: rgba(116, 189, 237, 0.22)"></span>少</span>
+              <span class="legend-item"><span class="legend-swatch" style="background: rgba(143, 202, 240, 0.32)"></span>中</span>
+              <span class="legend-item"><span class="legend-swatch" style="background: rgba(38, 115, 204, 0.24)"></span>多</span>
+            </div>
           </div>
         </div>
-        <div class="body-history-list" id="workout-history-list"></div>
+        <div id="workout-calendar" class="workout-calendar"></div>
       </section>
     </main>
+
+    <dialog id="workout-form-dialog" class="preview-dialog workout-form-dialog">
+      <div class="preview-dialog-card workout-form-dialog-card">
+        <div class="preview-head">
+          <div>
+            <p class="section-kicker">训练档案登记</p>
+            <h2 id="workout-dialog-title">新增一堂训练</h2>
+          </div>
+          <button class="soft-button" id="close-workout-dialog-button" type="button">关闭</button>
+        </div>
+
+        <form id="workout-record-form" class="form-grid">
+          <div class="form-field span-2">
+            <label for="workout-date">训练日期</label>
+            <input id="workout-date" name="date" type="date" required />
+          </div>
+          <div class="form-field span-2">
+            <label for="coach-evaluation">教练评价</label>
+            <textarea id="coach-evaluation" name="coachEvaluation" placeholder="例如：深蹲深度够了，但上背还可以再锁紧。"></textarea>
+          </div>
+          <div class="form-field span-2">
+            <label for="personal-feedback">个人反馈</label>
+            <textarea id="personal-feedback" name="personalFeedback" placeholder="例如：腿后侧发力明显，最后两组心肺压力大。"></textarea>
+          </div>
+          <div class="field-hint span-2">系统会根据每个动作的目标部位自动汇总本次训练部位清单，并一并保存到训练记录里。</div>
+        </form>
+
+        <div class="section-head workout-section-head">
+          <div>
+            <p class="section-kicker">动作</p>
+            <h3>本次训练动作</h3>
+          </div>
+          <button class="soft-button" id="add-exercise-button" type="button">添加动作</button>
+        </div>
+        <div id="exercise-list" class="exercise-list"></div>
+
+        <div class="page-actions">
+          <button class="solid-button" id="save-workout-button" type="submit" form="workout-record-form">保存训练档案</button>
+          <button class="soft-button" id="reset-workout-button" type="button">清空表单</button>
+        </div>
+        <p class="field-hint" id="workout-form-status">本页需要本地服务模式才能保存记录。</p>
+      </div>
+    </dialog>
+
+    <dialog id="workout-calendar-picker-dialog" class="preview-dialog calendar-picker-dialog">
+      <div class="preview-dialog-card calendar-picker-card">
+        <div class="preview-head">
+          <div>
+              <p class="section-kicker">月份切换</p>
+            <h2 id="workout-calendar-picker-title">选择训练月份</h2>
+          </div>
+          <button class="soft-button" id="workout-calendar-picker-close" type="button">关闭</button>
+        </div>
+        <div class="calendar-toolbar calendar-toolbar-dialog">
+          <label class="calendar-field">
+            <span>年份</span>
+            <select id="workout-calendar-year-select"></select>
+          </label>
+          <label class="calendar-field">
+            <span>月份</span>
+            <select id="workout-calendar-month-select"></select>
+          </label>
+          <div class="calendar-nav">
+            <button id="workout-calendar-prev-month" class="soft-button" type="button">上一月</button>
+            <button id="workout-calendar-next-month" class="soft-button" type="button">下一月</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="workout-preview-dialog" class="preview-dialog">
+      <div class="preview-dialog-card">
+        <div class="preview-head">
+          <div>
+            <p class="section-kicker">训练预览</p>
+            <h2 id="workout-preview-title">某一天的训练</h2>
+          </div>
+          <button class="soft-button" id="workout-preview-close" type="button">关闭</button>
+        </div>
+        <div id="workout-preview-content"></div>
+      </div>
+    </dialog>
+
+    <footer class="site-footer">
+      <p>Workout Archive Room</p>
+      <span>训练结构、训练量与反馈统一回看</span>
+    </footer>
 
     <template id="exercise-template">
       <article class="exercise-card">

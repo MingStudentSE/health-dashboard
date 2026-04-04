@@ -1,110 +1,69 @@
+<div align="center">
+
 # Health Dashboard
 
-[中文说明](./README.md)
+### A local-first health data pipeline and personal dashboard
 
-A self-contained local pipeline for turning exported health JSON files into:
+**Turn Apple Health JSON exports into SQLite, a static dashboard, a daily feedback page, a body metrics page, and a workout log page.**
 
-- an incremental SQLite archive
-- a multi-day health summary dataset
-- a static HTML dashboard with lightweight analysis
-- a daily reflection page with journaling and feedback
-- a dedicated body metrics page
-- a dedicated workout log page
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/MingStudentSE/health-dashboard)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-3C873A.svg)](https://nodejs.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-local%20archive-003B57.svg)](https://www.sqlite.org/)
+[![Local First](https://img.shields.io/badge/local--first-private%20by%20default-0F172A.svg)](#privacy-and-publishing)
 
-The project is designed for workflows like:
+[中文 README](./README.md) · [Key Features](#-key-features) · [Quick Start](#-quick-start) · [Usage](#-usage) · [Architecture](#-architecture) · [Changelog](#-changelog)
 
-`Google Drive -> JSON archive -> SQLite -> dashboard`
+</div>
 
-## Before You Start
+---
 
-This project is not a generic health data collector. It assumes you already have Apple Health data being exported to Google Drive on an ongoing basis.
+## Why Health Dashboard?
 
-- Use an iPhone or another Apple device that supports Apple Health
-- Store or sync your health data through Apple's built-in `Health` app
-- Install the `Health Auto Export` app
-- Purchase and enable the premium subscription used for the automation-based sync workflow in this project
-- Configure Google Drive sync in `Health Auto Export` so your health data is continuously exported as JSON files
+> Many health data tools either depend too heavily on cloud services or stop at display-only dashboards.
+>
+> **Health Dashboard** is a fully local health data pipeline. It turns Apple Health exports into a durable SQLite archive, daily notes, workout logs, and a static dashboard, while keeping your personal data on your own machine.
 
-Official setup guide:
+## ✨ Key Features
 
-- [Health Auto Export: Sync Apple Health Data to Google Drive](https://help.healthyapps.dev/en/health-auto-export/automations/google-drive/)
-
-This repository assumes that the setup above is already complete and that you have a publicly shared Google Drive folder link containing the exported JSON files. The link must allow anyone with the link to read the folder contents, otherwise the bundled sync script cannot fetch the exported JSON files.
-
-## What It Does
-
+### 🎯 Local Data Pipeline
 - Downloads only new JSON files from a public Google Drive folder
-- Keeps the original JSON files in a local `json/` archive
+- Keeps raw exports in a local `json/` archive
 - Imports only new or changed files into SQLite
-- Builds a static dashboard from the archived data
-- Writes a small sync log for each run
-- Provides a body metrics page for weight, body fat, skeletal muscle, circumference, score, and notes
-- Provides a workout page for exercises, target areas, sets, reps, weights, coach comments, and personal feedback
-- Stores body metrics and workout logs in `data/health.sqlite`
+- Appends a lightweight sync log for each run
 
-## Output
+### 📊 Health Dashboard
+- Builds a static page from local archived data
+- Shows recent health analysis, charts, report calendar, and daily summaries
+- Includes body metrics and recent workout summaries
+- `web/health-dashboard-standalone.html` can be opened directly in a browser
 
-After a successful sync, the main outputs are:
+### 📝 Daily Feedback Page
+- Open a day from the calendar and review the full analysis
+- Write a journal entry for that day
+- Generate feedback from both the data and the journal
+- Supports OpenAI-compatible APIs and falls back to a local heuristic generator when no model is configured
 
-- `data/health.sqlite`
-- `web/data/health-dashboard.json`
-- `web/health-dashboard-standalone.html`
+### 🧍 Body Metrics Page
+- Track weight, body fat, skeletal muscle, chest, waist, hip, body age, score, and notes
+- Automatically generate a latest-status summary
+- Compare against the previous entry
+- Stored in SQLite `body_measurements`
 
-When running in app mode, the project also uses:
+### 🏋️ Workout Page
+- Record workout date, exercise name, target area, sets, reps, weight, coach evaluation, and personal feedback
+- Summarize per-session body areas, exercise count, total sets, and training volume
+- Browse workout history through a heatmap-style calendar, then open a day for details
+- Stored in SQLite `workout_sessions`, `workout_exercises`, and `workout_sets`
 
-- `data/daily-notes/<date>.json`
-- `/api/days/:date/note`
-- `/api/days/:date/feedback`
-- `/api/body-records`
-- `/api/workout-records`
-
-The standalone HTML file can be opened directly in a browser without a local server.
-
-## Privacy and Git Hygiene
-
-The repository is set up to commit source code and directory scaffolding only, not personal health data or local secrets.
-
-- `health.config.json` is ignored
-- raw exports inside `json/` are ignored
-- SQLite files, sync logs, and daily notes inside `data/` are ignored
-- `web/data/health-dashboard.json` and `web/health-dashboard-standalone.html` are ignored
-
-This makes it safer to keep iterating on the open-source project while keeping your real health data local.
-
-## Project Layout
+## 🔁 Data Flow
 
 ```text
-health/
-├─ json/                         # Archived raw health JSON files
-├─ data/                         # Runtime artifacts (ignored by git)
-├─ scripts/
-│  └─ public_drive_json_reader.py
-├─ src/
-│  ├─ archiveDriveJsonToSqlite.mjs
-│  ├─ bodyMetrics.mjs
-│  ├─ importHealthToSqlite.mjs
-│  ├─ buildDashboardData.mjs
-│  ├─ buildStandaloneDashboard.mjs
-│  ├─ server.mjs
-│  ├─ sqlite.mjs
-│  └─ workoutRecords.mjs
-├─ web/
-│  ├─ body.html
-│  ├─ body.js
-│  ├─ daily.html
-│  ├─ daily.js
-│  ├─ index.html
-│  ├─ styles.css
-│  ├─ app.js
-│  ├─ workout.html
-│  ├─ workout.js
-│  └─ data/health-dashboard.json
-├─ health.config.example.json
-└─ package.json
+Apple Health -> Health Auto Export -> Google Drive JSON -> local archive -> SQLite -> dashboard / notes / feedback
 ```
 
-## Requirements
+## 🚀 Quick Start
 
+### Requirements
 - Node.js 18+
 - Python 3
 - `sqlite3`
@@ -117,74 +76,68 @@ python3 --version
 sqlite3 --version
 ```
 
-## Quick Start
-
-1. Clone the repository.
+### Install
 
 ```bash
 git clone <your-repo-url>
 cd health
-```
-
-2. Create a local config file.
-
-```bash
 cp health.config.example.json health.config.json
 ```
 
-3. Edit `health.config.json` and set `driveFolder` to your public Google Drive folder link or folder ID.
+### Configure
 
-Example:
+At minimum, set `driveFolder` to your public Google Drive folder link or folder ID.
+
+If you want model-powered feedback, fill in `openaiCompatible` as well.
 
 ```json
 {
-  "driveFolder": "https://drive.google.com/drive/folders/YOUR_FOLDER_ID"
+  "driveFolder": "https://drive.google.com/drive/folders/YOUR_FOLDER_ID",
+  "openaiCompatible": {
+    "baseUrl": "https://api.siliconflow.cn/v1",
+    "apiKey": "YOUR_API_KEY",
+    "model": "Pro/deepseek-ai/DeepSeek-V3.2"
+  }
 }
 ```
 
-4. Run the full pipeline.
+### Run
 
 ```bash
 npm run sync:drive
 ```
 
-5. Open the generated dashboard:
+After syncing, open:
 
 ```text
 web/health-dashboard-standalone.html
 ```
 
-If you want the daily pages, journaling, and generated feedback flow, start the local app:
+If you want the local app and daily pages:
 
 ```bash
 npm run start
 ```
 
-Or simply double-click `run.command` in the repository root.
+If you only want to launch the local app, double-click `run.command` in the repository root.
 
-Both `run.command` and `sync-and-run.command` now read `driveFolder` from `health.config.json`, sync the latest Google Drive export, and then launch the local app.
+## 📖 Usage
 
-Then open:
+### Common Commands
 
-```text
-http://127.0.0.1:3030
-```
-
-The local app currently exposes three main pages:
-
-- `/` for the main health dashboard
-- `/body.html` for manual body metrics tracking
-- `/workout.html` for workout logging
-
-## Commands
-
-Run the full incremental sync pipeline:
+Run the full incremental sync:
 
 ```bash
 npm run sync:drive
 ```
 
-Run sync with an explicit folder:
+Alias:
+
+```bash
+npm run sync
+```
+
+Specify a folder explicitly:
 
 ```bash
 npm run sync:drive -- --folder "https://drive.google.com/drive/folders/..."
@@ -196,19 +149,19 @@ Download only the latest JSON file:
 npm run sync:drive -- --latest-only
 ```
 
-Skip dashboard rebuild:
+Sync without rebuilding the dashboard:
 
 ```bash
 npm run sync:drive -- --skip-dashboard
 ```
 
-Import archived JSON files into SQLite:
+Import archived JSON into SQLite only:
 
 ```bash
 npm run import:sqlite
 ```
 
-Rebuild dashboard files only:
+Rebuild static dashboard artifacts only:
 
 ```bash
 npm run build:standalone
@@ -220,27 +173,117 @@ Start the local app:
 npm run start
 ```
 
-Sync the latest Google Drive export and start the app:
+Start the local app directly:
 
 ```bash
 ./run.command
 ```
 
-Legacy entry point with the same behavior:
+Sync first, then start:
 
 ```bash
 ./sync-and-run.command
 ```
 
-## Incremental Behavior
+### Local Pages
+- `/` main health dashboard
+- `/body.html` body metrics page
+- `/workout.html` workout logging page
 
-The project is designed to avoid repeated work:
+### Outputs
 
-- Existing JSON filenames are not downloaded again unless `--overwrite` is used
-- Files already imported with the same content hash are skipped during SQLite import
-- Each sync appends a line to `data/sync-log.jsonl`
+After a successful sync, the main outputs are:
 
-## SQLite Schema
+- `data/health.sqlite`
+- `web/data/health-dashboard.json`
+- `web/health-dashboard-standalone.html`
+- `data/sync-log.jsonl`
+- `data/sync-manifest.json`
+
+When running in local app mode, the project also uses:
+
+- `data/daily-notes/<date>.json`
+- `/api/days/:date/note`
+- `/api/days/:date/feedback`
+- `/api/body-records`
+- `/api/workout-records`
+
+The standalone HTML file can be opened directly in a browser without a local server.
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+  A["Apple Health"] --> B["Health Auto Export"]
+  B --> C["Public Google Drive folder"]
+  C --> D["Local json/ archive"]
+  D --> E["SQLite: data/health.sqlite"]
+  E --> F["Dashboard data"]
+  E --> G["Daily feedback page"]
+  E --> H["Body metrics page"]
+  E --> I["Workout page"]
+  G --> J["OpenAI-compatible model API"]
+  J --> G
+```
+
+### Core Stack
+
+| Module | Technology | Purpose |
+|---|---|---|
+| Runtime | Node.js | Sync pipeline, page builds, HTTP server |
+| Archive reader | Python 3 | Public Google Drive folder reader |
+| Storage | SQLite | Local archive and structured queries |
+| Frontend | Native HTML/CSS/JS | Static dashboard and local pages |
+| Feedback generation | OpenAI-compatible API | Optional model-powered feedback |
+
+## 🧱 Project Structure
+
+```text
+health/
+├─ json/                         # Archived raw health JSON files
+├─ data/                         # Runtime artifacts
+├─ scripts/
+│  └─ public_drive_json_reader.py
+├─ src/
+│  ├─ archiveDriveJsonToSqlite.mjs
+│  ├─ bodyMetrics.mjs
+│  ├─ buildDashboardData.mjs
+│  ├─ buildStandaloneDashboard.mjs
+│  ├─ importHealthToSqlite.mjs
+│  ├─ server.mjs
+│  ├─ sqlite.mjs
+│  └─ workoutRecords.mjs
+├─ web/
+│  ├─ app.js
+│  ├─ body.html
+│  ├─ body.js
+│  ├─ daily.html
+│  ├─ daily.js
+│  ├─ index.html
+│  ├─ styles.css
+│  ├─ workout.html
+│  ├─ workout.js
+│  └─ data/health-dashboard.json
+├─ health.config.example.json
+├─ run.command
+├─ sync-and-run.command
+└─ package.json
+```
+
+## 🔧 Configuration
+
+The default configuration in `health.config.example.json` looks like this:
+
+| Field | Purpose | Required |
+|---|---|---|
+| `driveFolder` | Public Google Drive folder link or folder ID | Yes |
+| `openaiCompatible.baseUrl` | OpenAI-compatible API base URL | No |
+| `openaiCompatible.apiKey` | API key | No |
+| `openaiCompatible.model` | Model name | No |
+
+If no model config is provided, the project falls back to a local heuristic feedback generator, so it still runs end to end.
+
+## 📚 SQLite Schema
 
 Main tables and views:
 
@@ -255,8 +298,6 @@ Main tables and views:
 
 Example queries:
 
-Daily step totals:
-
 ```bash
 sqlite3 data/health.sqlite "
 SELECT day, total_qty AS steps
@@ -266,19 +307,6 @@ ORDER BY day;
 "
 ```
 
-Daily heart rate summary:
-
-```bash
-sqlite3 data/health.sqlite "
-SELECT day, avg_avg_value AS avg_heart_rate, max_value AS max_heart_rate
-FROM daily_metric_totals
-WHERE metric_name = 'heart_rate'
-ORDER BY day;
-"
-```
-
-Daily sleep summary:
-
 ```bash
 sqlite3 data/health.sqlite "
 SELECT day, in_bed_hours, asleep_hours, deep_hours, rem_hours, sleep_start, sleep_end
@@ -287,115 +315,44 @@ ORDER BY day;
 "
 ```
 
-## Dashboard
+## ⚠️ Notes
 
-The generated dashboard is a static page built from local data. It currently includes:
-
-- recent health status analysis
-- trend charts and trend interpretation
-- a report calendar
-- summary preview before opening a specific day
-- a body metrics summary
-- a recent workout summary
-
-## Daily Reflection Pages
-
-The project now includes dedicated per-day pages:
-
-- open a day from the report calendar
-- review the professional analysis, full metrics, and charts for that date
-- write a journal note
-- generate a daily feedback summary based on both the data and the journal
-
-Journal files are stored locally at:
-
-```text
-data/daily-notes/YYYY-MM-DD.json
-```
-
-## Body Metrics Page
-
-In local app mode, `/body.html` provides a dedicated page for manual body measurement tracking.
-
-Supported fields:
-
-- date
-- weight
-- body fat rate
-- skeletal muscle
-- chest
-- waist
-- hip
-- body age
-- score
-- note
-
-The page also generates:
-
-- a latest-status summary
-- changes versus the previous record
-- lightweight record-by-record analysis
-- a history list
-
-These records are stored in the `body_measurements` table in SQLite.
-
-## Workout Page
-
-In local app mode, `/workout.html` provides a dedicated page for logging each workout session.
-
-Each session supports:
-
-- workout date
-- exercise name
-- target areas for the exercise
-- multiple sets per exercise
-- reps per set
-- weight per set
-- coach evaluation
-- personal feedback
-
-The page also shows:
-
-- recent workout summaries
-- exercise count, total sets, and estimated training volume per session
-- workout history
-
-These records are stored in the `workout_sessions`, `workout_exercises`, and `workout_sets` tables in SQLite.
-
-## OpenAI-Compatible API
-
-Daily feedback supports OpenAI-compatible model endpoints.
-
-Configure this in `health.config.json`:
-
-```json
-{
-  "driveFolder": "",
-  "openaiCompatible": {
-    "baseUrl": "https://your-api-base-url",
-    "apiKey": "your-api-key",
-    "model": "your-model-name"
-  }
-}
-```
-
-If no model config is provided, the project falls back to a local heuristic feedback generator so it still runs end to end.
-
-## Notes
-
-- This project is intended for personal data workflows, not medical diagnosis
+- This project is intended for personal health workflows, not medical diagnosis
 - The dashboard analysis is heuristic and descriptive, not clinical advice
-- The Google Drive folder must be publicly readable for the bundled reader to work
-- The body metrics and workout pages are manual-entry modules, not automatic Apple Health imports
+- The bundled Google Drive reader requires the target folder to be publicly readable
+- The body metrics and workout pages are manual-entry modules and do not infer circumferences or training details from Apple Health automatically
 
-## GitHub-Friendly Defaults
+## Privacy and Publishing
 
-The repository is set up so that personal runtime files stay local:
+The repository is set up to keep personal runtime files local by default.
 
 - `health.config.json` is ignored
-- `data/*.sqlite` is ignored
-- `data/sync-log.jsonl` is ignored
-- `data/daily-notes/` is ignored
+- raw exports inside `json/` are ignored
+- SQLite files, sync logs, and daily notes inside `data/` are ignored
+- `web/data/health-dashboard.json` and `web/health-dashboard-standalone.html` are ignored
+- `data/sync-manifest.json` is ignored
 - `data/body-records.json` and `data/workout-records.json`, if present, are legacy migration backups rather than active data sources
 
-You can choose whether to keep sample JSON files in `json/` for demos, or remove them before publishing.
+## 📝 Changelog
+
+### v0.1.0
+
+**Initial public-facing structured release with:**
+
+- Apple Health JSON incremental archiving
+- local SQLite data warehouse
+- static health dashboard generation
+- daily feedback and journaling
+- body metrics and workout logging pages
+- OpenAI-compatible feedback support
+- local heuristic fallback
+
+---
+
+<div align="center">
+
+**If this project helps you, please give it a ⭐ Star.**
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MingStudentSE/health-dashboard&type=Date)](https://star-history.com/#MingStudentSE/health-dashboard&Date)
+
+</div>

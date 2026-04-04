@@ -63,6 +63,19 @@ function createFileHash(content) {
   return crypto.createHash("sha256").update(content).digest("hex");
 }
 
+function summarizeMetrics(metrics) {
+  const metricGroups = Array.isArray(metrics) ? metrics.length : 0;
+  const rows = Array.isArray(metrics)
+    ? metrics.reduce((count, metric) => count + (Array.isArray(metric?.data) ? metric.data.length : 0), 0)
+    : 0;
+
+  return {
+    metricGroups,
+    rows,
+    isEmptyExport: rows === 0,
+  };
+}
+
 function createSchemaSql() {
   return `
 PRAGMA journal_mode = WAL;
@@ -196,6 +209,13 @@ INSERT OR IGNORE INTO metric_records (
   return statements.join("\n");
 }
 
+function createDeleteStatements(fileName) {
+  return `
+DELETE FROM metric_records WHERE file_name = ${quoteSql(fileName)};
+DELETE FROM imported_files WHERE file_name = ${quoteSql(fileName)};
+`.trim();
+}
+
 async function runSqlite(dbPath, sql) {
   const tempFile = path.join(os.tmpdir(), `health-import-${Date.now()}.sql`);
   await fs.writeFile(tempFile, sql);
@@ -289,28 +309,61 @@ async function main() {
   let totalRows = 0;
   let skippedFiles = 0;
   let importedFiles = 0;
+  const fileSummaries = [];
   let sql = "BEGIN;\n";
+  let hasDatabaseChanges = false;
 
   for (const filePath of filePaths) {
     const fileName = path.basename(filePath);
     const content = await fs.readFile(filePath, "utf8");
     const fileHash = createFileHash(content);
+    const parsed = JSON.parse(content);
+    const metrics = parsed?.data?.metrics ?? [];
+    const metricSummary = summarizeMetrics(metrics);
 
-    if (importedMap.get(fileName) === fileHash) {
-      skippedFiles += 1;
+    if (metricSummary.isEmptyExport) {
+      sql += `${createDeleteStatements(fileName)}\n`;
+      hasDatabaseChanges = true;
+      fileSummaries.push({
+        fileName,
+        imported: false,
+        skipped: false,
+        isEmptyExport: true,
+        metricGroups: metricSummary.metricGroups,
+        rows: metricSummary.rows,
+      });
       continue;
     }
 
-    const parsed = JSON.parse(content);
-    const metrics = parsed?.data?.metrics ?? [];
+    if (importedMap.get(fileName) === fileHash) {
+      skippedFiles += 1;
+      fileSummaries.push({
+        fileName,
+        imported: false,
+        skipped: true,
+        isEmptyExport: metricSummary.isEmptyExport,
+        metricGroups: metricSummary.metricGroups,
+        rows: metricSummary.rows,
+      });
+      continue;
+    }
 
-    totalMetrics += metrics.length;
-    totalRows += metrics.reduce((count, metric) => count + (Array.isArray(metric.data) ? metric.data.length : 0), 0);
+    totalMetrics += metricSummary.metricGroups;
+    totalRows += metricSummary.rows;
     importedFiles += 1;
+    hasDatabaseChanges = true;
     sql += `${createInsertStatements(fileName, fileHash, metrics)}\n`;
+    fileSummaries.push({
+      fileName,
+      imported: true,
+      skipped: false,
+      isEmptyExport: metricSummary.isEmptyExport,
+      metricGroups: metricSummary.metricGroups,
+      rows: metricSummary.rows,
+    });
   }
 
-  if (importedFiles > 0) {
+  if (hasDatabaseChanges) {
     sql += "COMMIT;\n";
     await runSqlite(options.dbPath, sql);
   }
@@ -322,6 +375,7 @@ async function main() {
     skippedFiles,
     metricGroups: totalMetrics,
     rows: totalRows,
+    fileSummaries,
   };
 
   console.log(`Imported ${importedFiles} file(s), skipped ${skippedFiles}, ${totalMetrics} metric group(s), ${totalRows} row(s).`);

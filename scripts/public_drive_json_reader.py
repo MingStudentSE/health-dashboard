@@ -17,6 +17,8 @@ from urllib.request import Request, urlopen
 
 
 USER_AGENT = "Mozilla/5.0"
+LIST_ATTEMPTS = 3
+LIST_RETRY_DELAY_SECONDS = 1.0
 
 
 @dataclass
@@ -56,10 +58,7 @@ def fetch_bytes(url: str, timeout: int = 30, retries: int = 2) -> bytes:
     return fetch_with_retry(url, timeout=timeout, retries=retries)
 
 
-def list_public_folder_files(folder_value: str) -> list[DriveFile]:
-    folder_id = extract_folder_id(folder_value)
-    url = f"https://drive.google.com/embeddedfolderview?id={folder_id}#list"
-    html = fetch_text(url)
+def parse_public_folder_html(html: str) -> list[DriveFile]:
     matches = re.findall(
         r'<a href="([^"]+)"[^>]*>[\s\S]*?<div class="flip-entry-title">([\s\S]*?)</div>',
         html,
@@ -81,6 +80,21 @@ def list_public_folder_files(folder_value: str) -> list[DriveFile]:
     return files
 
 
+def list_public_folder_files(folder_value: str, attempts: int = LIST_ATTEMPTS) -> list[DriveFile]:
+    folder_id = extract_folder_id(folder_value)
+    url = f"https://drive.google.com/embeddedfolderview?id={folder_id}#list"
+    merged: dict[str, DriveFile] = {}
+
+    for attempt in range(max(1, attempts)):
+        html = fetch_text(url)
+        for file in parse_public_folder_html(html):
+            merged[file.file_id] = file
+        if attempt < max(1, attempts) - 1:
+            time.sleep(LIST_RETRY_DELAY_SECONDS)
+
+    return list(merged.values())
+
+
 def readable_json_files(files: Iterable[DriveFile]) -> list[DriveFile]:
     json_files = [file for file in files if file.name.lower().endswith(".json")]
     return sorted(json_files, key=lambda item: item.name, reverse=True)
@@ -92,7 +106,7 @@ def download_public_file(file_id: str, retries: int = 2) -> bytes:
 
 
 def command_list(args: argparse.Namespace) -> int:
-    files = list_public_folder_files(args.folder)
+    files = readable_json_files(list_public_folder_files(args.folder))
     payload = [
         {"id": file.file_id, "name": file.name, "url": file.url}
         for file in files
@@ -156,7 +170,14 @@ def command_archive(args: argparse.Namespace) -> int:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    selected = files if args.all else files[:1]
+    if args.file_ids:
+        requested_ids = set(args.file_ids)
+        selected = [file for file in files if file.file_id in requested_ids]
+    elif args.all:
+        selected = files
+    else:
+        selected = files[:1]
+
     results: list[dict[str, str | int | bool]] = []
     for file in selected:
         destination = output_dir / file.name
@@ -234,6 +255,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--overwrite",
         action="store_true",
         help="Overwrite files that already exist in the archive directory",
+    )
+    archive_parser.add_argument(
+        "--file-id",
+        dest="file_ids",
+        action="append",
+        default=[],
+        help="Archive only the specified Google Drive file IDs",
     )
     archive_parser.set_defaults(func=command_archive)
 

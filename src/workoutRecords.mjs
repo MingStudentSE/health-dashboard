@@ -17,6 +17,35 @@ function cleanText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function normalizeAreaList(value) {
+  const source = Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
+  const areas = [];
+
+  for (const item of source) {
+    const parts = cleanText(item)
+      .split(/[、,，/]/)
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+    for (const part of parts) {
+      if (!areas.includes(part)) areas.push(part);
+    }
+  }
+
+  return areas;
+}
+
+function parseAreaColumn(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return normalizeAreaList(value);
+
+  try {
+    return normalizeAreaList(JSON.parse(value));
+  } catch {
+    return normalizeAreaList(value);
+  }
+}
+
 function toFiniteNumber(value) {
   if (value === "" || value === null || value === undefined) return null;
   const parsed = Number(value);
@@ -50,20 +79,29 @@ function normalizeExercise(item = {}) {
   return { name, targetAreas, sets };
 }
 
+function deriveTrainedAreas(exercises = [], explicitAreas = []) {
+  const normalizedExplicitAreas = normalizeAreaList(explicitAreas);
+  if (normalizedExplicitAreas.length) return normalizedExplicitAreas;
+  return normalizeAreaList(exercises.map((exercise) => exercise.targetAreas));
+}
+
 export function normalizeWorkoutRecord(input, existingRecord = null) {
   const date = normalizeDate(input?.date ?? existingRecord?.date);
   if (!date) throw new Error("Invalid date. Expected YYYY-MM-DD.");
+
+  const exercises = Array.isArray(input?.exercises)
+    ? input.exercises.map((exercise) => normalizeExercise(exercise)).filter(Boolean)
+    : Array.isArray(existingRecord?.exercises)
+      ? existingRecord.exercises.map((exercise) => normalizeExercise(exercise)).filter(Boolean)
+      : [];
 
   return {
     id: existingRecord?.id || cleanText(input?.id) || makeId(),
     date,
     coachEvaluation: cleanText(input?.coachEvaluation ?? existingRecord?.coachEvaluation),
     personalFeedback: cleanText(input?.personalFeedback ?? existingRecord?.personalFeedback),
-    exercises: Array.isArray(input?.exercises)
-      ? input.exercises.map((exercise) => normalizeExercise(exercise)).filter(Boolean)
-      : Array.isArray(existingRecord?.exercises)
-        ? existingRecord.exercises.map((exercise) => normalizeExercise(exercise)).filter(Boolean)
-        : [],
+    trainedAreas: deriveTrainedAreas(exercises, input?.trainedAreas),
+    exercises,
     createdAt: existingRecord?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -83,13 +121,11 @@ function summarizeRecord(record) {
     0,
   );
 
-  const targetAreas = Array.from(
-    new Set(record.exercises.map((exercise) => exercise.targetAreas).filter(Boolean).flatMap((text) => text.split(/[、,，/]/).map((item) => item.trim()).filter(Boolean))),
-  );
+  const trainedAreas = deriveTrainedAreas(record.exercises, record.trainedAreas);
 
   const highlights = [];
   if (exerciseCount) highlights.push(`本次共训练 ${exerciseCount} 个动作，完成 ${totalSets} 组。`);
-  if (targetAreas.length) highlights.push(`主要覆盖部位：${targetAreas.join("、")}。`);
+  if (trainedAreas.length) highlights.push(`本次训练部位清单：${trainedAreas.join("、")}。`);
   if (totalVolume > 0) highlights.push(`粗略训练总容量约 ${Math.round(totalVolume)} kg。`);
   if (record.coachEvaluation) highlights.push(`教练评价：${record.coachEvaluation}`);
   if (record.personalFeedback) highlights.push(`个人反馈：${record.personalFeedback}`);
@@ -98,7 +134,8 @@ function summarizeRecord(record) {
     exerciseCount,
     totalSets,
     totalVolume,
-    targetAreas,
+    targetAreas: trainedAreas,
+    trainedAreas,
     highlights: highlights.slice(0, 4),
   };
 }
@@ -113,6 +150,7 @@ function sanitizeJoinedRows(rows) {
         date: row.workout_date,
         coachEvaluation: cleanText(row.coach_evaluation),
         personalFeedback: cleanText(row.personal_feedback),
+        trainedAreas: parseAreaColumn(row.trained_areas),
         createdAt: row.created_at || null,
         updatedAt: row.updated_at || null,
         exercises: [],
@@ -143,6 +181,7 @@ function sanitizeJoinedRows(rows) {
 
   return Array.from(sessionMap.values()).map((session) => ({
     ...session,
+    trainedAreas: session.trainedAreas.length ? session.trainedAreas : deriveTrainedAreas(session.exercises),
     exercises: session.exercises.map(({ __exerciseId, ...exercise }) => exercise),
   }));
 }
@@ -156,6 +195,7 @@ CREATE TABLE IF NOT EXISTS workout_sessions (
   workout_date TEXT NOT NULL,
   coach_evaluation TEXT,
   personal_feedback TEXT,
+  trained_areas TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -191,6 +231,49 @@ ON workout_sets (exercise_id, sort_order);
 
 export async function ensureWorkoutSchema(dbPath) {
   await runSqlite(dbPath, createSchemaSql());
+
+  const columns = await querySqliteJson(dbPath, "PRAGMA table_info(workout_sessions);");
+  const hasTrainedAreasColumn = columns.some((column) => column.name === "trained_areas");
+  if (!hasTrainedAreasColumn) {
+    await runSqlite(dbPath, "ALTER TABLE workout_sessions ADD COLUMN trained_areas TEXT;");
+  }
+
+  const rowsNeedingBackfill = await querySqliteJson(
+    dbPath,
+    "SELECT COUNT(*) AS count FROM workout_sessions WHERE trained_areas IS NULL OR TRIM(COALESCE(trained_areas, '')) = '';",
+  );
+  if ((rowsNeedingBackfill[0]?.count ?? 0) > 0) {
+    const rows = await querySqliteJson(
+      dbPath,
+      `
+SELECT
+  ws.id AS session_id,
+  ws.workout_date,
+  ws.coach_evaluation,
+  ws.personal_feedback,
+  ws.trained_areas,
+  ws.created_at,
+  ws.updated_at,
+  we.id AS exercise_id,
+  we.name AS exercise_name,
+  we.target_areas,
+  wset.id AS set_id,
+  wset.reps,
+  wset.weight
+FROM workout_sessions ws
+LEFT JOIN workout_exercises we ON we.session_id = ws.id
+LEFT JOIN workout_sets wset ON wset.exercise_id = we.id
+ORDER BY ws.workout_date ASC, ws.created_at ASC, we.sort_order ASC, wset.sort_order ASC;`,
+    );
+    const sessions = sanitizeJoinedRows(rows);
+    const statements = sessions.map(
+      (session) =>
+        `UPDATE workout_sessions SET trained_areas = ${quoteSql(JSON.stringify(session.trainedAreas || []))} WHERE id = ${quoteSql(session.id)};`,
+    );
+    if (statements.length) {
+      await runSqlite(dbPath, statements.join("\n"));
+    }
+  }
 }
 
 async function replaceWorkoutRecord(dbPath, record) {
@@ -198,12 +281,13 @@ async function replaceWorkoutRecord(dbPath, record) {
   const statements = [
     `DELETE FROM workout_sessions WHERE id = ${quoteSql(normalized.id)};`,
     `
-INSERT INTO workout_sessions (id, workout_date, coach_evaluation, personal_feedback, created_at, updated_at)
+INSERT INTO workout_sessions (id, workout_date, coach_evaluation, personal_feedback, trained_areas, created_at, updated_at)
 VALUES (
   ${quoteSql(normalized.id)},
   ${quoteSql(normalized.date)},
   ${quoteSql(normalized.coachEvaluation)},
   ${quoteSql(normalized.personalFeedback)},
+  ${quoteSql(JSON.stringify(normalized.trainedAreas || []))},
   ${quoteSql(normalized.createdAt)},
   ${quoteSql(normalized.updatedAt)}
 );`.trim(),
@@ -290,6 +374,7 @@ SELECT
   ws.workout_date,
   ws.coach_evaluation,
   ws.personal_feedback,
+  ws.trained_areas,
   ws.created_at,
   ws.updated_at,
   we.id AS exercise_id,
@@ -316,7 +401,7 @@ export async function updateWorkoutRecordDb(dbPath, id, record, jsonFilePath = p
   await migrateWorkoutJsonToDb(dbPath, jsonFilePath);
   const existing = await querySqliteJson(
     dbPath,
-    `SELECT id, workout_date, coach_evaluation, personal_feedback, created_at, updated_at
+    `SELECT id, workout_date, coach_evaluation, personal_feedback, trained_areas, created_at, updated_at
      FROM workout_sessions
      WHERE id = ${quoteSql(id)}
      LIMIT 1;`,

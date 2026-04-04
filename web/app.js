@@ -22,6 +22,40 @@ function formatMetricValue(value, unit = "") {
   return `${formatNumber(value, inferDigits(unit))}${unit ? ` ${unit}` : ""}`;
 }
 
+function chartRangeLabel(points) {
+  if (!points.length) return "--";
+  if (points.length === 1) return `仅 ${points[0].label}`;
+  return `${points[0].label} 至 ${points.at(-1).label} · ${points.length} 天`;
+}
+
+function bindChartTooltip(target) {
+  const tooltip = target.querySelector(".chart-hover-tooltip");
+  if (!tooltip) return;
+
+  const hideTooltip = () => {
+    tooltip.hidden = true;
+  };
+
+  const moveTooltip = (event) => {
+    const hit = event.target.closest(".chart-hit");
+    if (!hit || !target.contains(hit)) {
+      hideTooltip();
+      return;
+    }
+
+    const rect = target.getBoundingClientRect();
+    const left = Math.min(Math.max(event.clientX - rect.left, 18), rect.width - 18);
+    const top = Math.max(event.clientY - rect.top - 14, 18);
+    tooltip.innerHTML = `<strong>${hit.dataset.label}</strong><span>${hit.dataset.value}</span>`;
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+    tooltip.hidden = false;
+  };
+
+  target.onpointermove = moveTooltip;
+  target.onpointerleave = hideTooltip;
+}
+
 function metricTile(label, value, suffix = "") {
   return `
     <article class="metric-tile">
@@ -151,15 +185,17 @@ function renderLineChart(targetId, points, color, unit = "") {
       ${coords
         .map(
           (point) =>
-            `<circle cx="${point.x}" cy="${point.y}" r="4" fill="${color}" stroke="rgba(255,250,242,.95)" stroke-width="2"></circle>`,
+            `<circle class="chart-hit" data-label="${point.label}" data-value="${formatMetricValue(point.value, unit)}" cx="${point.x}" cy="${point.y}" r="12" fill="transparent"></circle><circle cx="${point.x}" cy="${point.y}" r="5" fill="${color}" stroke="rgba(255,250,242,.95)" stroke-width="2"></circle>`,
         )
         .join("")}
     </svg>
+    <div class="chart-hover-tooltip" hidden></div>
     <div class="chart-caption">
-      <span>${points[0].label}</span>
+      <span>${chartRangeLabel(points)}</span>
       <span>${formatMetricValue(points.at(-1).value, unit)}</span>
     </div>
   `;
+  bindChartTooltip(target);
 }
 
 function renderBarChart(targetId, points, color, unit = "") {
@@ -184,15 +220,17 @@ function renderBarChart(targetId, points, color, unit = "") {
           const valueHeight = (point.value / maxValue) * (height - padding * 2);
           const x = padding + index * ((width - padding * 2) / points.length) + 2;
           const y = height - padding - valueHeight;
-          return `<rect x="${x}" y="${y}" rx="8" ry="8" width="${Math.max(barWidth, 6)}" height="${valueHeight}" fill="${color}" opacity="${0.55 + (index / points.length) * 0.35}"></rect>`;
+          return `<rect class="chart-hit" data-label="${point.label}" data-value="${formatMetricValue(point.value, unit)}" x="${x}" y="${y}" rx="8" ry="8" width="${Math.max(barWidth, 6)}" height="${valueHeight}" fill="${color}" opacity="${0.55 + (index / points.length) * 0.35}"></rect>`;
         })
         .join("")}
     </svg>
+    <div class="chart-hover-tooltip" hidden></div>
     <div class="chart-caption">
-      <span>${points[0].label}</span>
+      <span>${chartRangeLabel(points)}</span>
       <span>${formatMetricValue(points.reduce((sum, item) => sum + item.value, 0), unit)}</span>
     </div>
   `;
+  bindChartTooltip(target);
 }
 
 function renderChart(targetId, chart, color) {
@@ -205,7 +243,7 @@ function renderChart(targetId, chart, color) {
 }
 
 function createTrendCharts(payload) {
-  const palette = ["#b55d3d", "#7b8b6f", "#7d5460", "#9b7a49", "#65829c", "#8a674f"];
+  const palette = ["#2673cc", "#74bded", "#8fcaf0", "#9edcc7", "#f7d77b", "#4d7fb0"];
   document.querySelector("#trend-grid").innerHTML = payload.metricTrends
     .filter((metric) => metric.points.length)
     .map(
@@ -230,11 +268,38 @@ function createTrendCharts(payload) {
     });
 }
 
+function setLatestDailyLink(days) {
+  const link = document.querySelector("#latest-daily-link");
+  if (!link) return;
+  const latestDay = (days || []).slice().sort((left, right) => left.date.localeCompare(right.date)).at(-1);
+  if (!latestDay) {
+    link.href = "./daily.html";
+    return;
+  }
+  link.href = `./daily.html?date=${latestDay.date}`;
+}
+
 function calendarToneClass(day) {
   if (day.analysis.score >= 86) return "tone-good";
   if (day.analysis.score >= 74) return "tone-steady";
   if (day.analysis.score >= 60) return "tone-repair";
   return "tone-alert";
+}
+
+function reportHeatLevel(day) {
+  if (!day) return 0;
+  if (day.analysis.score >= 86) return 1;
+  if (day.analysis.score >= 74) return 2;
+  if (day.analysis.score >= 60) return 3;
+  return 4;
+}
+
+function pad2(value) {
+  return String(value).padStart(2, "0");
+}
+
+function monthLabel(year, month) {
+  return `${year}年${month}月`;
 }
 
 function openPreview(day, noteMeta) {
@@ -257,51 +322,188 @@ function openPreview(day, noteMeta) {
 
 function createCalendar(days) {
   const notesMeta = window.__HEALTH_NOTES_META__ || {};
-  const grouped = new Map();
-  for (const day of days) {
-    const monthKey = day.date.slice(0, 7);
-    if (!grouped.has(monthKey)) grouped.set(monthKey, []);
-    grouped.get(monthKey).push(day);
+  const target = document.querySelector("#calendar-list");
+  const pickerTrigger = document.querySelector("#calendar-picker-trigger");
+  const pickerDialog = document.querySelector("#calendar-picker-dialog");
+  const pickerTitle = document.querySelector("#calendar-picker-title");
+  const pickerClose = document.querySelector("#calendar-picker-close");
+  const yearSelect = document.querySelector("#calendar-year-select");
+  const monthSelect = document.querySelector("#calendar-month-select");
+  const prevButton = document.querySelector("#calendar-prev-month");
+  const nextButton = document.querySelector("#calendar-next-month");
+  const meta = document.querySelector("#calendar-meta");
+
+  const dayMap = new Map(days.map((day) => [day.date, day]));
+  const sortedDates = days.map((day) => day.date).sort();
+
+  if (!sortedDates.length) {
+    target.innerHTML = `<div class="calendar-empty-state">还没有可展示的报告日历，先同步几天数据后这里就会出现单月日历。</div>`;
+    meta.textContent = "";
+    pickerTrigger.textContent = "暂无报告";
+    pickerTrigger.disabled = true;
+    yearSelect.innerHTML = "";
+    monthSelect.innerHTML = "";
+    prevButton.disabled = true;
+    nextButton.disabled = true;
+    return;
   }
 
-  const monthNames = Array.from(grouped.keys()).sort().reverse();
-  document.querySelector("#calendar-list").innerHTML = monthNames
-    .map((monthKey) => {
-      const monthDays = grouped.get(monthKey).slice().sort((a, b) => a.date.localeCompare(b.date));
-      return `
-        <section class="calendar-month">
-          <div class="calendar-month-head">
-            <h3>${monthKey}</h3>
-            <span>${monthDays.length} 天</span>
-          </div>
-          <div class="calendar-grid">
-            ${monthDays
-              .map(
-                (day) => `
-                  <button
-                    class="calendar-day ${calendarToneClass(day)} ${day.date === days.at(-1)?.date ? "is-latest" : ""} ${notesMeta[day.date]?.hasJournal ? "has-note" : "no-note"}"
-                    type="button"
-                    data-date="${day.date}"
-                  >
-                    <strong>${day.date.slice(8)}</strong>
-                    <span>${day.analysis.tone}</span>
-                    <small>${notesMeta[day.date]?.hasJournal ? "已写日志" : "未写日志"}</small>
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        </section>
-      `;
-    })
-    .join("");
+  const latestDate = sortedDates.at(-1);
+  const firstDay = new Date(`${sortedDates[0]}T00:00:00`);
+  const lastDay = new Date(`${latestDate}T00:00:00`);
+  const availableYears = [];
+  for (let year = firstDay.getFullYear(); year <= lastDay.getFullYear(); year += 1) {
+    availableYears.push(year);
+  }
 
-  document.querySelectorAll(".calendar-day").forEach((button) => {
-    button.addEventListener("click", () => {
-      const targetDay = days.find((day) => day.date === button.dataset.date);
-      if (targetDay) openPreview(targetDay, notesMeta[targetDay.date]);
-    });
+  const availableMonths = Array.from({ length: 12 }, (_, index) => index + 1);
+  const state = {
+    year: lastDay.getFullYear(),
+    month: lastDay.getMonth() + 1,
+  };
+
+  yearSelect.innerHTML = availableYears.map((year) => `<option value="${year}">${year} 年</option>`).join("");
+  monthSelect.innerHTML = availableMonths.map((month) => `<option value="${month}">${month} 月</option>`).join("");
+
+  function renderCalendar() {
+    const firstVisibleDay = new Date(state.year, state.month - 1, 1);
+    const lastVisibleDay = new Date(state.year, state.month, 0);
+    const firstDayOffset = firstVisibleDay.getDay();
+    const monthKey = `${state.year}-${pad2(state.month)}`;
+    const monthDays = days.filter((day) => day.date.startsWith(monthKey));
+
+    const cells = [];
+    for (let i = 0; i < firstDayOffset; i += 1) {
+      cells.push('<div class="calendar-day calendar-empty" aria-hidden="true"></div>');
+    }
+
+    const current = new Date(firstVisibleDay);
+    while (current <= lastVisibleDay) {
+      const dateKey = `${current.getFullYear()}-${pad2(current.getMonth() + 1)}-${pad2(current.getDate())}`;
+      const day = dayMap.get(dateKey);
+      if (day) {
+        const heatLevel = reportHeatLevel(day);
+        cells.push(`
+          <button
+            class="report-calendar-day heat-${heatLevel} ${dateKey === latestDate ? "is-latest" : ""}"
+            type="button"
+            data-date="${day.date}"
+            title="${day.date} · ${day.analysis.tone}"
+          >
+            <strong>${current.getDate()}</strong>
+          </button>
+        `);
+      } else {
+        cells.push(`
+          <div class="report-calendar-day is-empty" aria-label="${dateKey}">
+            <strong>${current.getDate()}</strong>
+          </div>
+        `);
+      }
+      current.setDate(current.getDate() + 1);
+    }
+
+    target.innerHTML = `
+      <section class="calendar-month">
+        <div class="calendar-month-head">
+          <strong>${monthLabel(state.year, state.month)}</strong>
+          <span>${monthDays.length} 天有报告</span>
+        </div>
+        <div class="calendar-weekdays">
+          <div class="calendar-weekday">日</div>
+          <div class="calendar-weekday">一</div>
+          <div class="calendar-weekday">二</div>
+          <div class="calendar-weekday">三</div>
+          <div class="calendar-weekday">四</div>
+          <div class="calendar-weekday">五</div>
+          <div class="calendar-weekday">六</div>
+        </div>
+        <div class="calendar-grid report-calendar-grid">${cells.join("")}</div>
+      </section>
+    `;
+
+    pickerTrigger.textContent = monthLabel(state.year, state.month);
+    pickerTitle.textContent = `切换到 ${monthLabel(state.year, state.month)}`;
+    meta.textContent = `${monthLabel(state.year, state.month)} · ${monthDays.length} 天有报告`;
+    prevButton.disabled = state.year === availableYears[0] && state.month === 1;
+    nextButton.disabled = state.year === availableYears.at(-1) && state.month === 12;
+  }
+
+  yearSelect.value = String(state.year);
+  monthSelect.value = String(state.month);
+
+  yearSelect.addEventListener("change", () => {
+    state.year = Number(yearSelect.value);
+    renderCalendar();
   });
+
+  monthSelect.addEventListener("change", () => {
+    state.month = Number(monthSelect.value);
+    renderCalendar();
+  });
+
+  prevButton.addEventListener("click", () => {
+    if (state.month === 1) {
+      if (state.year > availableYears[0]) {
+        state.month = 12;
+        state.year -= 1;
+      }
+    } else {
+      state.month -= 1;
+    }
+    yearSelect.value = String(state.year);
+    monthSelect.value = String(state.month);
+    renderCalendar();
+  });
+
+  nextButton.addEventListener("click", () => {
+    if (state.month === 12) {
+      if (state.year < availableYears.at(-1)) {
+        state.month = 1;
+        state.year += 1;
+      }
+    } else {
+      state.month += 1;
+    }
+    yearSelect.value = String(state.year);
+    monthSelect.value = String(state.month);
+    renderCalendar();
+  });
+
+  target.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-date]");
+    if (!button) return;
+    const targetDay = dayMap.get(button.dataset.date);
+    if (targetDay) openPreview(targetDay, notesMeta[targetDay.date]);
+  });
+
+  pickerTrigger.addEventListener("click", () => {
+    if (typeof pickerDialog.showModal === "function") {
+      pickerDialog.showModal();
+    } else {
+      pickerDialog.setAttribute("open", "open");
+    }
+  });
+
+  pickerClose.addEventListener("click", () => {
+    if (pickerDialog.open && typeof pickerDialog.close === "function") {
+      pickerDialog.close();
+    } else {
+      pickerDialog.removeAttribute("open");
+    }
+  });
+
+  pickerDialog.addEventListener("click", (event) => {
+    if (event.target === pickerDialog) {
+      if (pickerDialog.open && typeof pickerDialog.close === "function") {
+        pickerDialog.close();
+      } else {
+        pickerDialog.removeAttribute("open");
+      }
+    }
+  });
+
+  renderCalendar();
 }
 
 function renderAnalysisList(targetId, items) {
@@ -333,6 +535,7 @@ async function main() {
   createWorkoutSummary(payload);
   createRecentAnalysis(payload);
   createTrendCharts(payload);
+  setLatestDailyLink(days);
   createCalendar(days);
 }
 
