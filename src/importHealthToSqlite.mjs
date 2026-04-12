@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const jsonDir = path.join(projectRoot, "json");
 const defaultDbPath = path.join(projectRoot, "data", "health.sqlite");
+const STALE_TODAY_LAG_HOURS = 4;
 
 function parseArgs(argv) {
   const options = {
@@ -63,17 +64,62 @@ function createFileHash(content) {
   return crypto.createHash("sha256").update(content).digest("hex");
 }
 
+function formatLocalDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function extractDateFromFileName(fileName) {
+  const match = String(fileName).match(/(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : null;
+}
+
 function summarizeMetrics(metrics) {
   const metricGroups = Array.isArray(metrics) ? metrics.length : 0;
   const rows = Array.isArray(metrics)
     ? metrics.reduce((count, metric) => count + (Array.isArray(metric?.data) ? metric.data.length : 0), 0)
     : 0;
+  let latestRecordAt = null;
+  let latestStepCountAt = null;
+
+  if (Array.isArray(metrics)) {
+    for (const metric of metrics) {
+      const data = Array.isArray(metric?.data) ? metric.data : [];
+      for (const row of data) {
+        const recordAt = toIsoTimestamp(row?.date);
+        if (!recordAt) continue;
+        if (!latestRecordAt || recordAt > latestRecordAt) {
+          latestRecordAt = recordAt;
+        }
+        if (metric?.name === "step_count" && (!latestStepCountAt || recordAt > latestStepCountAt)) {
+          latestStepCountAt = recordAt;
+        }
+      }
+    }
+  }
 
   return {
     metricGroups,
     rows,
     isEmptyExport: rows === 0,
+    latestRecordAt,
+    latestStepCountAt,
   };
+}
+
+function isStaleTodaySnapshot(fileName, metricSummary, now = new Date()) {
+  const checkpoint = metricSummary.latestStepCountAt || metricSummary.latestRecordAt;
+  if (!checkpoint) return false;
+  const fileDate = extractDateFromFileName(fileName);
+  if (!fileDate) return false;
+  if (fileDate !== formatLocalDate(now)) return false;
+
+  const latestRecordDate = new Date(checkpoint);
+  if (Number.isNaN(latestRecordDate.getTime())) return false;
+  const lagHours = (now.getTime() - latestRecordDate.getTime()) / (1000 * 60 * 60);
+  return lagHours > STALE_TODAY_LAG_HOURS;
 }
 
 function createSchemaSql() {
@@ -163,6 +209,7 @@ GROUP BY DATE(record_at, 'localtime');
 
 function createInsertStatements(fileName, fileHash, metrics) {
   const statements = [];
+  statements.push(createDeleteStatements(fileName));
   statements.push(
     `INSERT INTO imported_files (file_name, file_hash) VALUES (${quoteSql(fileName)}, ${quoteSql(fileHash)}) ` +
       `ON CONFLICT(file_name) DO UPDATE SET file_hash = excluded.file_hash, imported_at = CURRENT_TIMESTAMP;`,
@@ -320,8 +367,9 @@ async function main() {
     const parsed = JSON.parse(content);
     const metrics = parsed?.data?.metrics ?? [];
     const metricSummary = summarizeMetrics(metrics);
+    const staleTodaySnapshot = isStaleTodaySnapshot(fileName, metricSummary);
 
-    if (metricSummary.isEmptyExport) {
+    if (metricSummary.isEmptyExport || staleTodaySnapshot) {
       sql += `${createDeleteStatements(fileName)}\n`;
       hasDatabaseChanges = true;
       fileSummaries.push({
@@ -329,8 +377,11 @@ async function main() {
         imported: false,
         skipped: false,
         isEmptyExport: true,
+        isStaleTodaySnapshot: staleTodaySnapshot,
         metricGroups: metricSummary.metricGroups,
         rows: metricSummary.rows,
+        latestRecordAt: metricSummary.latestRecordAt,
+        latestStepCountAt: metricSummary.latestStepCountAt,
       });
       continue;
     }
@@ -342,8 +393,11 @@ async function main() {
         imported: false,
         skipped: true,
         isEmptyExport: metricSummary.isEmptyExport,
+        isStaleTodaySnapshot: false,
         metricGroups: metricSummary.metricGroups,
         rows: metricSummary.rows,
+        latestRecordAt: metricSummary.latestRecordAt,
+        latestStepCountAt: metricSummary.latestStepCountAt,
       });
       continue;
     }
@@ -358,8 +412,11 @@ async function main() {
       imported: true,
       skipped: false,
       isEmptyExport: metricSummary.isEmptyExport,
+      isStaleTodaySnapshot: false,
       metricGroups: metricSummary.metricGroups,
       rows: metricSummary.rows,
+      latestRecordAt: metricSummary.latestRecordAt,
+      latestStepCountAt: metricSummary.latestStepCountAt,
     });
   }
 

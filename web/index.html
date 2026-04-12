@@ -11,45 +11,40 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
-  <body>
-    <div class="backdrop"></div>
-    <header class="site-header">
-      <a class="brand-mark" href="./index.html">
-        <span class="brand-mark-en">Health Reading Room</span>
-        <strong>健康阅览室</strong>
+  <body class="bg-gray-50 text-gray-900 font-sans">
+    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center sticky top-0 z-50">
+      <a class="flex flex-col" href="./index.html">
+        <span class="text-xs text-gray-500 uppercase tracking-wider">Health Reading Room</span>
+        <span class="text-xl font-bold text-gray-900">健康阅览室</span>
       </a>
-      <nav class="site-nav" aria-label="主导航">
-        <a class="site-nav-link is-active" href="./index.html">总览</a>
-        <a class="site-nav-link" href="./body.html">身体数据</a>
-        <a class="site-nav-link" href="./workout.html">训练记录</a>
+      <nav class="flex gap-4">
+        <a class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium" href="./index.html">总览</a>
+        <a class="px-4 py-2 hover:bg-gray-100 rounded-lg text-gray-600" href="./body.html">身体数据</a>
+        <a class="px-4 py-2 hover:bg-gray-100 rounded-lg text-gray-600" href="./workout.html">训练记录</a>
       </nav>
     </header>
 
-    <main class="page-shell">
-      <section class="hero-panel hero-panel-home">
-        <div class="hero-copy">
-          <p class="eyebrow">健康阅览室</p>
-          <h1>把训练、睡眠与体成分，整理成一座可以慢慢翻阅的身体图书馆</h1>
-          <p class="hero-text">
+    <main class="max-w-7xl mx-auto px-6 py-8">
+      <section class="grid md:grid-cols-2 gap-8 mb-12">
+        <div class="space-y-4">
+          <p class="text-sm text-blue-600 font-semibold tracking-wide">健康阅览室</p>
+          <h1 class="text-4xl font-extrabold text-gray-900 leading-tight">把训练、睡眠与体成分，整理成一座可以慢慢翻阅的身体图书馆</h1>
+          <p class="text-lg text-gray-600">
             首页不再像后台面板，而像馆内总览。你可以先看最近状态的走向，再按主题进入身体数据室、训练档案室和每日记录室，把健康变化读成连续的章节。
           </p>
-          <div class="page-actions">
-            <a class="solid-button" href="./body.html">进入身体数据室</a>
-            <a class="soft-button" href="./workout.html">翻看训练档案</a>
+          <div class="flex gap-4 pt-4">
+            <a class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition" href="./body.html">进入身体数据室</a>
+            <a class="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition" href="./workout.html">翻看训练档案</a>
           </div>
         </div>
-        <div class="hero-side-stack">
-          <div class="hero-stats" id="hero-stats"></div>
-          <article class="hero-note">
-            <p class="section-kicker">馆内导览</p>
-            <h2>先看全局，再按章节阅读</h2>
-            <p class="section-note">
-              总览页负责判断方向，身体页负责测量变化，训练页负责回看训练结构，每日页则把客观数据和主观体感装订进同一篇日记。
-            </p>
-          </article>
+        <div class="space-y-6">
+          <div class="grid grid-cols-2 gap-4" id="hero-stats"></div>
         </div>
       </section>
+      <!-- 其他内容待重构 -->
 
       <section class="overview-grid">
         <a class="overview-link" href="./body.html">

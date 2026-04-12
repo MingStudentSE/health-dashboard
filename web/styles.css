@@ -51,7 +51,7 @@ body {
 
 body::before,
 body::after {
-  content: "";
+  content: none;
   position: fixed;
   inset: auto;
   pointer-events: none;
@@ -573,6 +573,11 @@ p {
   padding: 20px;
 }
 
+.chart-card {
+  overflow: clip;
+  isolation: isolate;
+}
+
 .overview-link {
   overflow: hidden;
   text-decoration: none;
@@ -872,6 +877,9 @@ p {
 }
 
 .chart-card h3 {
+  position: relative;
+  z-index: 2;
+  padding-top: 4px;
   margin-bottom: 14px;
 }
 

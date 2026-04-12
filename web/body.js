@@ -51,6 +51,12 @@ function bindChartTooltip(target) {
   };
 
   target.onpointerleave = hideTooltip;
+  target.onpointerup = hideTooltip;
+  target.onpointercancel = hideTooltip;
+  target.onpointerdown = target.onpointermove;
+  target.onlostpointercapture = hideTooltip;
+  target.addEventListener("scroll", hideTooltip, { passive: true });
+  window.addEventListener("blur", hideTooltip);
 }
 
 function renderAnalysisList(targetId, items, emptyText) {

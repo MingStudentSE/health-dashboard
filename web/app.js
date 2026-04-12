@@ -54,6 +54,12 @@ function bindChartTooltip(target) {
 
   target.onpointermove = moveTooltip;
   target.onpointerleave = hideTooltip;
+  target.onpointerup = hideTooltip;
+  target.onpointercancel = hideTooltip;
+  target.onpointerdown = moveTooltip;
+  target.onlostpointercapture = hideTooltip;
+  target.addEventListener("scroll", hideTooltip, { passive: true });
+  window.addEventListener("blur", hideTooltip);
 }
 
 function metricTile(label, value, suffix = "") {
@@ -74,9 +80,9 @@ function createHeroStats(payload) {
   document.querySelector("#hero-stats").innerHTML = stats
     .map(
       ([label, value]) => `
-        <article class="stat-card">
-          <div class="stat-label">${label}</div>
-          <div class="stat-value">${value}</div>
+        <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">${label}</div>
+          <div class="text-xl font-bold text-gray-900 mt-1">${value}</div>
         </article>
       `,
     )

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "folder": "https://drive.google.com/drive/folders/1_V7a4_vrgRWhDtLGBH6bQ2Nbencf7CkB",
-  "lastCheckedAt": "2026-04-04T16:47:34.904Z",
-  "lastSyncedAt": "2026-04-04T16:46:34.872Z",
+  "folder": "https://drive.google.com/drive/folders/1w5XG9HdMp_-R8BXWC43gD8rqhyk8Ysk-?usp=sharing",
+  "lastCheckedAt": "2026-04-12T11:21:15.834Z",
+  "lastSyncedAt": "2026-04-12T11:21:16.073Z",
   "files": {
     "1f07vSdZZ1ja5EB62IdAEYiKMqHoByB1l": {
       "id": "1f07vSdZZ1ja5EB62IdAEYiKMqHoByB1l",
@@ -76,14 +76,6 @@
       "downloadedAt": "2026-04-04T05:40:35.743Z",
       "importedAt": "2026-04-04T05:43:24.163Z"
     },
-    "1RQhtDHF4tngrnL5Lf6AovxJa3Mdo5ZJU": {
-      "id": "1RQhtDHF4tngrnL5Lf6AovxJa3Mdo5ZJU",
-      "name": "HealthAutoExport-2026-04-05.json",
-      "archivePath": "json/HealthAutoExport-2026-04-05.json",
-      "status": "imported",
-      "downloadedAt": "2026-04-04T16:46:34.788Z",
-      "importedAt": "2026-04-04T16:46:34.872Z"
-    },
     "1UsnKh8rUSs5AsHOGlwsikiqwaUJNUtK2": {
       "id": "1UsnKh8rUSs5AsHOGlwsikiqwaUJNUtK2",
       "name": "HealthAutoExport-2026-04-04.json",
@@ -91,6 +83,126 @@
       "status": "imported",
       "downloadedAt": "2026-04-04T16:43:20.981Z",
       "importedAt": "2026-04-04T16:43:21.125Z"
+    },
+    "1AOmt4JkKyUl6n9oLfemkzcp7kGcWW4Hf": {
+      "id": "1AOmt4JkKyUl6n9oLfemkzcp7kGcWW4Hf",
+      "name": "HealthAutoExport-2026-04-06.json",
+      "archivePath": "json/HealthAutoExport-2026-04-06.json",
+      "status": "imported",
+      "downloadedAt": "2026-04-07T12:50:30.945Z",
+      "importedAt": "2026-04-07T12:50:31.120Z"
+    },
+    "1RQhtDHF4tngrnL5Lf6AovxJa3Mdo5ZJU": {
+      "id": "1RQhtDHF4tngrnL5Lf6AovxJa3Mdo5ZJU",
+      "name": "HealthAutoExport-2026-04-05.json",
+      "archivePath": "json/HealthAutoExport-2026-04-05.json",
+      "status": "imported",
+      "downloadedAt": "2026-04-06T02:39:30.870Z",
+      "importedAt": "2026-04-06T02:39:31.046Z"
+    },
+    "1mhezAGebuQ8qXuQ3a2eXvkkVNSRvvTlN": {
+      "id": "1mhezAGebuQ8qXuQ3a2eXvkkVNSRvvTlN",
+      "name": "HealthAutoExport-2026-04-07.json",
+      "archivePath": "json/HealthAutoExport-2026-04-07.json",
+      "status": "imported",
+      "downloadedAt": "2026-04-07T12:59:53.588Z",
+      "importedAt": "2026-04-07T13:06:33.568Z"
+    },
+    "1HVBSDbfeWUxGVKxTSMJQngjse6tZkGH3": {
+      "id": "1HVBSDbfeWUxGVKxTSMJQngjse6tZkGH3",
+      "name": "HealthAutoExport-2026-04-07.json",
+      "archivePath": "json/HealthAutoExport-2026-04-07.json",
+      "status": "imported",
+      "downloadedAt": "2026-04-07T13:06:33.385Z",
+      "importedAt": "2026-04-07T13:06:33.568Z"
+    },
+    "1Dss1qHkSFLu2AnhmhukAlFPngPcYRm5n": {
+      "id": "1Dss1qHkSFLu2AnhmhukAlFPngPcYRm5n",
+      "name": "HealthAutoExport-2026-04-06.json",
+      "archivePath": "json/HealthAutoExport-2026-04-06.json",
+      "status": "downloaded",
+      "downloadedAt": "2026-04-07T12:59:53.588Z",
+      "importedAt": null
+    },
+    "1KPOcnOYTNflwcRJXQRyzCuiOZvMTPB3K": {
+      "id": "1KPOcnOYTNflwcRJXQRyzCuiOZvMTPB3K",
+      "name": "HealthAutoExport-2026-04-05.json",
+      "archivePath": "json/HealthAutoExport-2026-04-05.json",
+      "status": "downloaded",
+      "downloadedAt": "2026-04-07T12:59:53.588Z",
+      "importedAt": null
+    },
+    "16bQIO_WsQC3Qew7_lorZmaHx_KfVl-lq": {
+      "id": "16bQIO_WsQC3Qew7_lorZmaHx_KfVl-lq",
+      "name": "HealthAutoExport-2026-04-04.json",
+      "archivePath": "json/HealthAutoExport-2026-04-04.json",
+      "status": "downloaded",
+      "downloadedAt": "2026-04-07T12:59:53.588Z",
+      "importedAt": null
+    },
+    "1fg1Dp8ZzkzO5oDZPa2-OVydlFm9SsGzn": {
+      "id": "1fg1Dp8ZzkzO5oDZPa2-OVydlFm9SsGzn",
+      "name": "HealthAutoExport-2026-04-03.json",
+      "archivePath": "json/HealthAutoExport-2026-04-03.json",
+      "status": "downloaded",
+      "downloadedAt": "2026-04-07T12:59:53.588Z",
+      "importedAt": null
+    },
+    "1G3zZVQN3XE3XfYF5YOBui_IpAmDsh2VV": {
+      "id": "1G3zZVQN3XE3XfYF5YOBui_IpAmDsh2VV",
+      "name": "HealthAutoExport-2026-04-02.json",
+      "archivePath": "json/HealthAutoExport-2026-04-02.json",
+      "status": "downloaded",
+      "downloadedAt": "2026-04-07T12:59:53.588Z",
+      "importedAt": null
+    },
+    "1zfjLbIuEBwh0lmyUC23ksl6sBRdGhn6z": {
+      "id": "1zfjLbIuEBwh0lmyUC23ksl6sBRdGhn6z",
+      "name": "HealthAutoExport-2026-04-01.json",
+      "archivePath": "json/HealthAutoExport-2026-04-01.json",
+      "status": "downloaded",
+      "downloadedAt": "2026-04-07T12:59:53.588Z",
+      "importedAt": null
+    },
+    "1CsgLrBasfHm1onp1mgv3J5u_1EnG02rr": {
+      "id": "1CsgLrBasfHm1onp1mgv3J5u_1EnG02rr",
+      "name": "HealthAutoExport-2026-04-08.json",
+      "archivePath": "json/HealthAutoExport-2026-04-08.json",
+      "status": "imported",
+      "downloadedAt": "2026-04-09T12:35:26.949Z",
+      "importedAt": "2026-04-09T12:35:27.084Z"
+    },
+    "1NDoJsBc0ZJ2aN9rriN4hfo1Jr4HuplFi": {
+      "id": "1NDoJsBc0ZJ2aN9rriN4hfo1Jr4HuplFi",
+      "name": "HealthAutoExport-2026-04-12.json",
+      "archivePath": "json/HealthAutoExport-2026-04-12.json",
+      "status": "imported",
+      "downloadedAt": "2026-04-12T11:21:15.834Z",
+      "importedAt": "2026-04-12T11:21:16.073Z"
+    },
+    "1iPMraipqUXEwgIWEtbFWwcpGn9xCdO9j": {
+      "id": "1iPMraipqUXEwgIWEtbFWwcpGn9xCdO9j",
+      "name": "HealthAutoExport-2026-04-11.json",
+      "archivePath": "json/HealthAutoExport-2026-04-11.json",
+      "status": "imported",
+      "downloadedAt": "2026-04-12T11:21:15.834Z",
+      "importedAt": "2026-04-12T11:21:16.073Z"
+    },
+    "1D3_kJFiY1ZFefcfyqMR2NLtRVkUo_KEw": {
+      "id": "1D3_kJFiY1ZFefcfyqMR2NLtRVkUo_KEw",
+      "name": "HealthAutoExport-2026-04-10.json",
+      "archivePath": "json/HealthAutoExport-2026-04-10.json",
+      "status": "imported",
+      "downloadedAt": "2026-04-12T11:21:15.834Z",
+      "importedAt": "2026-04-12T11:21:16.073Z"
+    },
+    "1RvxPDpIYKZpTsmC8M8qM99p7tTy7gdDO": {
+      "id": "1RvxPDpIYKZpTsmC8M8qM99p7tTy7gdDO",
+      "name": "HealthAutoExport-2026-04-09.json",
+      "archivePath": "json/HealthAutoExport-2026-04-09.json",
+      "status": "imported",
+      "downloadedAt": "2026-04-12T11:21:15.834Z",
+      "importedAt": "2026-04-12T11:21:16.073Z"
     }
   }
 }

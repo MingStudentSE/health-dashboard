@@ -14,7 +14,6 @@ const metricLabels = {
   step_count: "步数",
   active_energy: "活跃能量",
   basal_energy_burned: "基础能量",
-  walking_running_distance: "步行跑步距离",
   heart_rate: "心率",
   sleep_analysis: "睡眠分析",
 };
@@ -25,8 +24,9 @@ const primaryMetricOrder = [
   "heart_rate",
   "active_energy",
   "basal_energy_burned",
-  "walking_running_distance",
 ];
+
+const excludedMetrics = new Set(["walking_running_distance"]);
 
 function extractDateFromName(fileName) {
   const match = fileName.match(/(\d{4}-\d{2}-\d{2})/);
@@ -254,6 +254,7 @@ function summarizeSleep(metric) {
 
 function summarizeMetric(metric) {
   if (!metric) return null;
+  if (excludedMetrics.has(metric.name)) return null;
 
   let result;
   switch (metric.name) {
@@ -265,9 +266,6 @@ function summarizeMetric(metric) {
       break;
     case "step_count":
       result = summarizeQuantityMetric(metric, 0);
-      break;
-    case "walking_running_distance":
-      result = summarizeQuantityMetric(metric, 2);
       break;
     case "active_energy":
     case "basal_energy_burned":
@@ -328,7 +326,6 @@ function buildComprehensiveAnalysis(day) {
   const steps = day.metricMap.step_count;
   const active = day.metricMap.active_energy;
   const basal = day.metricMap.basal_energy_burned;
-  const distance = day.metricMap.walking_running_distance;
   const heart = day.metricMap.heart_rate;
 
   findings.push(`当天共覆盖 ${metricNames.size} 类指标，数据完整度为 ${day.completeness.coveragePercent}%。`);
@@ -370,11 +367,6 @@ function buildComprehensiveAnalysis(day) {
       findings.push(`步数 ${stepTotal}，活动量偏少。`);
       recommendations.push("安排一次 20 到 30 分钟的轻快步行，补足基础活动量。");
     }
-  }
-
-  if (distance) {
-    const distanceTotal = distance.cards.find((item) => item.label === "总量")?.value ?? 0;
-    findings.push(`步行跑步距离约 ${distanceTotal} km。`);
   }
 
   if (heart) {
@@ -455,7 +447,6 @@ function buildDayRecord(fileName, parsed, metricUniverse) {
     steps: metricMap.step_count?.keyMetric ?? 0,
     activeEnergy: metricMap.active_energy?.keyMetric ?? 0,
     basalEnergy: metricMap.basal_energy_burned?.keyMetric ?? 0,
-    distance: metricMap.walking_running_distance?.keyMetric ?? 0,
     sleepHours: metricMap.sleep_analysis?.keyMetric ?? 0,
     heartRateAvg: metricMap.heart_rate?.keyMetric ?? 0,
     heartRateMax: metricMap.heart_rate?.cards.find((item) => item.label === "最高心率")?.value ?? 0,
@@ -604,7 +595,9 @@ async function main() {
     const parsed = JSON.parse(content);
     parsedEntries.push([fileName, parsed]);
     for (const metric of parsed?.data?.metrics || []) {
-      metricUniverse.add(metric.name);
+      if (!excludedMetrics.has(metric.name)) {
+        metricUniverse.add(metric.name);
+      }
     }
   }
 

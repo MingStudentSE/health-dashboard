@@ -223,7 +223,7 @@ function hydrateManifestFromRemoteAndLocal(manifest, remoteFiles, localFiles) {
     const existingEntry = manifest.files[remoteFile.id];
     const localMatch = localByName.get(remoteFile.name);
     const archivePath = localMatch?.archivePath || existingEntry?.archivePath || normalizeArchivePath(remoteFile.name);
-    const status = existingEntry?.status || (localMatch ? "downloaded" : "missing");
+    const status = existingEntry?.status || (localMatch ? "unverified_local" : "missing");
 
     manifest.files[remoteFile.id] = {
       id: remoteFile.id,
@@ -263,7 +263,14 @@ async function determineRemoteDownloads(remoteFiles, manifest) {
       const { remoteFile, entry, archivePath, inspection } = item;
       const normalizedArchivePath = path.relative(projectRoot, archivePath);
 
-      if (!entry || !inspection.exists || entry.status === "empty_export" || inspection.isEmptyExport) {
+      if (
+        !entry ||
+        !inspection.exists ||
+        entry.status === "unverified_local" ||
+        entry.status === "empty_export" ||
+        entry.status === "stale_today" ||
+        inspection.isEmptyExport
+      ) {
         fileIdsToDownload.push(remoteFile.id);
         if (inspection.exists) {
           fileIdsToOverwrite.push(remoteFile.id);
@@ -326,6 +333,16 @@ function markEmptyExports(manifest, fileIds) {
     const entry = manifest.files[fileId];
     if (!entry) continue;
     entry.status = "empty_export";
+    entry.importedAt = null;
+  }
+  return manifest;
+}
+
+function markStaleTodaySnapshots(manifest, fileIds) {
+  for (const fileId of fileIds) {
+    const entry = manifest.files[fileId];
+    if (!entry) continue;
+    entry.status = "stale_today";
     entry.importedAt = null;
   }
   return manifest;
@@ -430,6 +447,7 @@ async function main() {
     importedRows: 0,
     importedMetricGroups: 0,
     emptyExportFiles: [],
+    staleTodayFiles: [],
     status: "archived",
     dashboardBuilt: false,
   };
@@ -472,6 +490,9 @@ async function main() {
     const emptyExportFileNames = requestedFiles
       .filter((item) => item.isEmptyExport)
       .map((item) => item.fileName);
+    const staleTodayFileNames = requestedFiles
+      .filter((item) => item.isStaleTodaySnapshot)
+      .map((item) => item.fileName);
     const skippedFileNames = requestedFiles
       .filter((item) => item.skipped)
       .map((item) => item.fileName);
@@ -484,13 +505,19 @@ async function main() {
     const emptyExportFileIds = [...importCandidates.entries()]
       .filter(([, item]) => emptyExportFileNames.includes(path.basename(item.archivePath)))
       .map(([fileId]) => fileId);
+    const staleTodayFileIds = [...importCandidates.entries()]
+      .filter(([, item]) => staleTodayFileNames.includes(path.basename(item.archivePath)))
+      .map(([fileId]) => fileId);
 
     syncEntry.importedFiles = importedFileNames;
     syncEntry.emptyExportFiles = emptyExportFileNames;
+    syncEntry.staleTodayFiles = staleTodayFileNames;
     syncEntry.importedRows = importSummary.rows ?? 0;
     syncEntry.importedMetricGroups = importSummary.metricGroups ?? 0;
     syncEntry.status = importedFileNames.length > 0
       ? "imported"
+      : staleTodayFileNames.length > 0
+        ? "stale_today"
       : emptyExportFileNames.length > 0
         ? "empty_export"
         : skippedFileNames.length > 0 && pendingFileNames.length === 0
@@ -499,6 +526,7 @@ async function main() {
 
     await markImported(manifest, importedFileIds);
     markEmptyExports(manifest, emptyExportFileIds);
+    markStaleTodaySnapshots(manifest, staleTodayFileIds);
   }
 
   if (options.rebuildDashboard) {
